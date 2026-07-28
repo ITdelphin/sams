@@ -145,7 +145,7 @@ export default function AdminStudentsPage() {
         <Card><CardContent className="p-4"><p className="text-xs text-muted-foreground">Suspended</p><p className="text-2xl font-bold text-red-600">{suspendedCount}</p></CardContent></Card>
       </div>
 
-      <Input placeholder="Search by name, email, or student ID..." value={search} onChange={(e) => setSearch(e.target.value)} className="max-w-md" />
+      <Input placeholder="Search by name, email, or roll number..." value={search} onChange={(e) => setSearch(e.target.value)} className="max-w-md" />
 
       <Card>
         <CardContent className="p-0">
@@ -154,7 +154,7 @@ export default function AdminStudentsPage() {
               <TableRow>
                 <TableHead>Name</TableHead>
                 <TableHead>Email</TableHead>
-                <TableHead>Student ID</TableHead>
+                <TableHead>Roll Number</TableHead>
                 <TableHead>Department</TableHead>
                 <TableHead>Status</TableHead>
                 <TableHead>Joined</TableHead>
@@ -204,7 +204,7 @@ export default function AdminStudentsPage() {
               <Input value={editForm.phone_number} onChange={(e) => setEditForm({ ...editForm, phone_number: e.target.value })} />
             </div>
             <div className="space-y-2">
-              <Label>Student ID</Label>
+              <Label>Roll Number</Label>
               <Input value={editForm.student_id} onChange={(e) => setEditForm({ ...editForm, student_id: e.target.value })} />
             </div>
             <div className="space-y-2">

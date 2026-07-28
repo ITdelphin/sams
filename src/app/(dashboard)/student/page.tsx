@@ -72,7 +72,7 @@ export default function StudentDashboardPage() {
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-bold text-foreground">Welcome, {profile?.full_name?.split(" ")[0]}!</h1>
-          <p className="text-sm text-muted-foreground">Student ID: {profile?.student_id || "Not assigned"}</p>
+          <p className="text-sm text-muted-foreground">Roll Number: {profile?.student_id || "Not assigned"}</p>
         </div>
         <div className="flex gap-2">
           <Link href="/student/attendance"><Button variant="outline">View Attendance</Button></Link>

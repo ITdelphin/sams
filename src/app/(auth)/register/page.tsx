@@ -44,6 +44,11 @@ export default function RegisterPage() {
       return;
     }
 
+    if (form.role === "student" && !form.studentId.trim()) {
+      setError("Roll Number is required for students.");
+      return;
+    }
+
     setLoading(true);
 
     const supabase = createClient();
@@ -195,12 +200,13 @@ export default function RegisterPage() {
 
             {form.role === "student" && (
               <div className="space-y-2">
-                <Label htmlFor="studentId">Student ID (Optional)</Label>
+                <Label htmlFor="studentId">Roll Number *</Label>
                 <Input
                   id="studentId"
                   placeholder="e.g., 20240001"
                   value={form.studentId}
                   onChange={(e) => updateForm("studentId", e.target.value)}
+                  required
                 />
               </div>
             )}

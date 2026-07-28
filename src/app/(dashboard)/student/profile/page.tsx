@@ -360,7 +360,7 @@ export default function StudentProfilePage() {
                 <div className="space-y-2">
                   <Label className="flex items-center gap-1.5 text-sm text-muted-foreground">
                     <BadgeCheck className="size-3.5" />
-                    Student ID
+                    Roll Number
                   </Label>
                   <p className="text-sm font-medium">
                     {profile.student_id || "—"}
