@@ -2,7 +2,7 @@
 
 import { useEffect, useState, useMemo } from "react";
 import { createClient } from "@/lib/supabase/client";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -12,6 +12,7 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "@/components/ui/select";
 import { formatDate, getStatusColor } from "@/lib/utils";
 import { toast } from "sonner";
+import { Users, GraduationCap, AlertTriangle } from "lucide-react";
 
 interface Student {
   id: string;
@@ -27,11 +28,18 @@ interface Student {
   departments?: { name: string } | null;
 }
 
+interface Faculty {
+  id: string;
+  name: string;
+  code: string;
+}
+
 export default function AdminStudentsPage() {
   const [students, setStudents] = useState<Student[]>([]);
   const [departments, setDepartments] = useState<any[]>([]);
-  const [faculties, setFaculties] = useState<any[]>([]);
+  const [faculties, setFaculties] = useState<Faculty[]>([]);
   const [search, setSearch] = useState("");
+  const [selectedFaculty, setSelectedFaculty] = useState<string>("all");
   const [loading, setLoading] = useState(true);
   const [editStudent, setEditStudent] = useState<Student | null>(null);
   const [editForm, setEditForm] = useState({
@@ -52,7 +60,7 @@ export default function AdminStudentsPage() {
     const [studentsRes, deptsRes, facsRes] = await Promise.all([
       supabase.from("profiles").select("*, departments(name)").eq("role", "student").order("created_at", { ascending: false }),
       supabase.from("departments").select("*"),
-      supabase.from("faculties").select("*"),
+      supabase.from("faculties").select("*").order("name"),
     ]);
     setStudents(studentsRes.data || []);
     setDepartments(deptsRes.data || []);
@@ -64,11 +72,20 @@ export default function AdminStudentsPage() {
     const q = search.toLowerCase();
     return students.filter(
       (s) =>
-        s.full_name.toLowerCase().includes(q) ||
-        s.email.toLowerCase().includes(q) ||
-        (s.student_id && s.student_id.toLowerCase().includes(q))
+        (selectedFaculty === "all" || s.faculty_id === selectedFaculty) &&
+        (s.full_name.toLowerCase().includes(q) ||
+          s.email.toLowerCase().includes(q) ||
+          (s.student_id && s.student_id.toLowerCase().includes(q)))
     );
-  }, [students, search]);
+  }, [students, search, selectedFaculty]);
+
+  const facultyCounts = useMemo(() => {
+    const counts: Record<string, number> = { all: students.length };
+    faculties.forEach((f) => {
+      counts[f.id] = students.filter((s) => s.faculty_id === f.id).length;
+    });
+    return counts;
+  }, [students, faculties]);
 
   const activeCount = students.filter((s) => s.account_status === "approved").length;
   const suspendedCount = students.filter((s) => s.account_status === "suspended").length;
@@ -140,12 +157,69 @@ export default function AdminStudentsPage() {
       </div>
 
       <div className="grid grid-cols-3 gap-4">
-        <Card><CardContent className="p-4"><p className="text-xs text-muted-foreground">Total Students</p><p className="text-2xl font-bold text-blue-600">{students.length}</p></CardContent></Card>
-        <Card><CardContent className="p-4"><p className="text-xs text-muted-foreground">Active</p><p className="text-2xl font-bold text-green-600">{activeCount}</p></CardContent></Card>
-        <Card><CardContent className="p-4"><p className="text-xs text-muted-foreground">Suspended</p><p className="text-2xl font-bold text-red-600">{suspendedCount}</p></CardContent></Card>
+        <Card>
+          <CardContent className="p-4 flex items-center gap-3">
+            <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary/10">
+              <Users className="h-5 w-5 text-primary" />
+            </div>
+            <div>
+              <p className="text-xs text-muted-foreground">Total Students</p>
+              <p className="text-2xl font-bold text-foreground">{students.length}</p>
+            </div>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardContent className="p-4 flex items-center gap-3">
+            <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-green-500/10">
+              <GraduationCap className="h-5 w-5 text-green-600" />
+            </div>
+            <div>
+              <p className="text-xs text-muted-foreground">Active</p>
+              <p className="text-2xl font-bold text-green-600">{activeCount}</p>
+            </div>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardContent className="p-4 flex items-center gap-3">
+            <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-red-500/10">
+              <AlertTriangle className="h-5 w-5 text-red-600" />
+            </div>
+            <div>
+              <p className="text-xs text-muted-foreground">Suspended</p>
+              <p className="text-2xl font-bold text-red-600">{suspendedCount}</p>
+            </div>
+          </CardContent>
+        </Card>
       </div>
 
       <Input placeholder="Search by name, email, or roll number..." value={search} onChange={(e) => setSearch(e.target.value)} className="max-w-md" />
+
+      {/* Faculty tabs */}
+      <div className="flex flex-wrap gap-2">
+        <button
+          onClick={() => setSelectedFaculty("all")}
+          className={`rounded-lg px-4 py-2 text-sm font-medium transition-colors ${
+            selectedFaculty === "all"
+              ? "bg-primary text-primary-foreground"
+              : "bg-secondary text-secondary-foreground hover:bg-primary/10"
+          }`}
+        >
+          All ({facultyCounts.all || 0})
+        </button>
+        {faculties.map((f) => (
+          <button
+            key={f.id}
+            onClick={() => setSelectedFaculty(f.id)}
+            className={`rounded-lg px-4 py-2 text-sm font-medium transition-colors ${
+              selectedFaculty === f.id
+                ? "bg-primary text-primary-foreground"
+                : "bg-secondary text-secondary-foreground hover:bg-primary/10"
+            }`}
+          >
+            {f.name} ({facultyCounts[f.id] || 0})
+          </button>
+        ))}
+      </div>
 
       <Card>
         <CardContent className="p-0">
@@ -155,6 +229,7 @@ export default function AdminStudentsPage() {
                 <TableHead>Name</TableHead>
                 <TableHead>Email</TableHead>
                 <TableHead>Roll Number</TableHead>
+                <TableHead>Faculty</TableHead>
                 <TableHead>Department</TableHead>
                 <TableHead>Status</TableHead>
                 <TableHead>Joined</TableHead>
@@ -164,27 +239,31 @@ export default function AdminStudentsPage() {
             <TableBody>
               {filtered.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={7} className="py-8 text-center text-muted-foreground">No students found.</TableCell>
+                  <TableCell colSpan={8} className="py-8 text-center text-muted-foreground">No students found.</TableCell>
                 </TableRow>
               ) : (
-                filtered.map((student) => (
-                  <TableRow key={student.id}>
-                    <TableCell className="font-medium">{student.full_name}</TableCell>
-                    <TableCell className="text-sm text-muted-foreground">{student.email}</TableCell>
-                    <TableCell>{student.student_id || "-"}</TableCell>
-                    <TableCell>{(student as any).departments?.name || "-"}</TableCell>
-                    <TableCell><Badge className={getStatusColor(student.account_status)}>{student.account_status}</Badge></TableCell>
-                    <TableCell className="text-sm text-muted-foreground">{formatDate(student.created_at)}</TableCell>
-                    <TableCell>
-                      <div className="flex gap-2">
-                        <Button variant="outline" size="sm" onClick={() => openEdit(student)}>Edit</Button>
-                        <Button variant="outline" size="sm" onClick={() => toggleStatus(student)}>
-                          {student.account_status === "approved" ? "Suspend" : "Reactivate"}
-                        </Button>
-                      </div>
-                    </TableCell>
-                  </TableRow>
-                ))
+                filtered.map((student) => {
+                  const facultyName = faculties.find((f) => f.id === student.faculty_id)?.name || "-";
+                  return (
+                    <TableRow key={student.id}>
+                      <TableCell className="font-medium">{student.full_name}</TableCell>
+                      <TableCell className="text-sm text-muted-foreground">{student.email}</TableCell>
+                      <TableCell>{student.student_id || "-"}</TableCell>
+                      <TableCell>{facultyName}</TableCell>
+                      <TableCell>{(student as any).departments?.name || "-"}</TableCell>
+                      <TableCell><Badge className={getStatusColor(student.account_status)}>{student.account_status}</Badge></TableCell>
+                      <TableCell className="text-sm text-muted-foreground">{formatDate(student.created_at)}</TableCell>
+                      <TableCell>
+                        <div className="flex gap-2">
+                          <Button variant="outline" size="sm" onClick={() => openEdit(student)}>Edit</Button>
+                          <Button variant="outline" size="sm" onClick={() => toggleStatus(student)}>
+                            {student.account_status === "approved" ? "Suspend" : "Reactivate"}
+                          </Button>
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                  );
+                })
               )}
             </TableBody>
           </Table>
