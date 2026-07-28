@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/client";
@@ -15,6 +15,8 @@ export default function RegisterPage() {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const [faculties, setFaculties] = useState<any[]>([]);
+  const [departments, setDepartments] = useState<any[]>([]);
   const [form, setForm] = useState({
     fullName: "",
     email: "",
@@ -22,12 +24,37 @@ export default function RegisterPage() {
     confirmPassword: "",
     phoneNumber: "",
     nationalId: "",
-    studentId: "",
+    rollNumber: "",
+    facultyId: "",
+    departmentId: "",
     role: "student" as "student" | "lecturer",
   });
 
+  useEffect(() => {
+    async function load() {
+      const supabase = createClient();
+      const [facs, depts] = await Promise.all([
+        supabase.from("faculties").select("*").order("name"),
+        supabase.from("departments").select("*, faculties(name)").order("name"),
+      ]);
+      setFaculties(facs.data || []);
+      setDepartments(depts.data || []);
+    }
+    load();
+  }, []);
+
+  const filteredDepartments = form.facultyId
+    ? departments.filter((d) => d.faculty_id === form.facultyId)
+    : departments;
+
   function updateForm(field: string, value: string) {
-    setForm((prev) => ({ ...prev, [field]: value }));
+    setForm((prev) => {
+      const updated = { ...prev, [field]: value };
+      if (field === "facultyId") {
+        updated.departmentId = "";
+      }
+      return updated;
+    });
   }
 
   async function handleRegister(e: React.FormEvent) {
@@ -44,8 +71,18 @@ export default function RegisterPage() {
       return;
     }
 
-    if (form.role === "student" && !form.studentId.trim()) {
-      setError("Roll Number is required for students.");
+    if (!form.rollNumber.trim()) {
+      setError("Roll Number is required.");
+      return;
+    }
+
+    if (!form.facultyId) {
+      setError("Please select your Faculty.");
+      return;
+    }
+
+    if (!form.departmentId) {
+      setError("Please select your Department.");
       return;
     }
 
@@ -79,11 +116,18 @@ export default function RegisterPage() {
           role: form.role,
           phone_number: form.phoneNumber || null,
           national_id: form.nationalId || null,
-          student_id: form.studentId || null,
+          student_id: form.rollNumber.trim(),
+          faculty_id: form.facultyId,
+          department_id: form.departmentId,
           account_status: form.role === "student" ? "approved" : "pending",
         });
 
       if (profileError) {
+        if (profileError.message?.includes("student_id")) {
+          setError("This roll number is already registered.");
+          setLoading(false);
+          return;
+        }
         console.error("Profile error:", profileError);
       }
     }
@@ -118,7 +162,7 @@ export default function RegisterPage() {
             )}
 
             <div className="space-y-2">
-              <Label htmlFor="role">Account Type</Label>
+              <Label htmlFor="role">Account Type *</Label>
               <Select value={form.role} onValueChange={(v) => updateForm("role", v)}>
                 <SelectTrigger>
                   <SelectValue />
@@ -131,7 +175,7 @@ export default function RegisterPage() {
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="fullName">Full Name</Label>
+              <Label htmlFor="fullName">Full Name *</Label>
               <Input
                 id="fullName"
                 placeholder="John Doe"
@@ -142,7 +186,18 @@ export default function RegisterPage() {
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="email">Email</Label>
+              <Label htmlFor="rollNumber">Roll Number *</Label>
+              <Input
+                id="rollNumber"
+                placeholder="e.g., 20240001"
+                value={form.rollNumber}
+                onChange={(e) => updateForm("rollNumber", e.target.value)}
+                required
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="email">Email *</Label>
               <Input
                 id="email"
                 type="email"
@@ -155,7 +210,7 @@ export default function RegisterPage() {
 
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
-                <Label htmlFor="password">Password</Label>
+                <Label htmlFor="password">Password *</Label>
                 <Input
                   id="password"
                   type="password"
@@ -166,7 +221,7 @@ export default function RegisterPage() {
                 />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="confirmPassword">Confirm</Label>
+                <Label htmlFor="confirmPassword">Confirm *</Label>
                 <Input
                   id="confirmPassword"
                   type="password"
@@ -176,6 +231,38 @@ export default function RegisterPage() {
                   required
                 />
               </div>
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="facultyId">Faculty *</Label>
+              <Select value={form.facultyId} onValueChange={(v) => updateForm("facultyId", v)}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Select your faculty" />
+                </SelectTrigger>
+                <SelectContent>
+                  {faculties.map((f) => (
+                    <SelectItem key={f.id} value={f.id}>{f.name}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="departmentId">Department *</Label>
+              <Select
+                value={form.departmentId}
+                onValueChange={(v) => updateForm("departmentId", v)}
+                disabled={!form.facultyId}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder={form.facultyId ? "Select your department" : "Select faculty first"} />
+                </SelectTrigger>
+                <SelectContent>
+                  {filteredDepartments.map((d) => (
+                    <SelectItem key={d.id} value={d.id}>{d.name}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
 
             <div className="space-y-2">
@@ -197,19 +284,6 @@ export default function RegisterPage() {
                 onChange={(e) => updateForm("nationalId", e.target.value)}
               />
             </div>
-
-            {form.role === "student" && (
-              <div className="space-y-2">
-                <Label htmlFor="studentId">Roll Number *</Label>
-                <Input
-                  id="studentId"
-                  placeholder="e.g., 20240001"
-                  value={form.studentId}
-                  onChange={(e) => updateForm("studentId", e.target.value)}
-                  required
-                />
-              </div>
-            )}
 
             <Button type="submit" className="w-full" disabled={loading}>
               {loading ? "Creating account..." : "Create Account"}
