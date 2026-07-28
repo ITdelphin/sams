@@ -8,14 +8,12 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { toast } from "sonner";
 
 export default function LoginPage() {
   const router = useRouter();
-  const [identifier, setIdentifier] = useState("");
+  const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [loginType, setLoginType] = useState("roll_number");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
@@ -25,51 +23,14 @@ export default function LoginPage() {
     setError("");
 
     const supabase = createClient();
-    let loginEmail = identifier;
-
-    if (loginType === "roll_number") {
-      if (!identifier.trim()) {
-        setError("Please enter your roll number.");
-        setLoading(false);
-        return;
-      }
-      try {
-        const { data: profile, error: lookupError } = await supabase
-          .from("profiles")
-          .select("email")
-          .eq("student_id", identifier.trim())
-          .single();
-
-        if (lookupError || !profile) {
-          setError("No account found with this roll number. Please check and try again.");
-          setLoading(false);
-          return;
-        }
-        loginEmail = profile.email;
-      } catch {
-        setError("Unable to look up roll number. Please try logging in with email instead.");
-        setLoading(false);
-        return;
-      }
-    } else {
-      if (!identifier.trim()) {
-        setError("Please enter your email address.");
-        setLoading(false);
-        return;
-      }
-    }
 
     const { data, error: authError } = await supabase.auth.signInWithPassword({
-      email: loginEmail,
+      email: email.trim(),
       password,
     });
 
     if (authError) {
-      if (authError.message.includes("Invalid login")) {
-        setError("Invalid credentials. Please check your roll number/email and password.");
-      } else {
-        setError(authError.message);
-      }
+      setError("Invalid email or password. Please try again.");
       setLoading(false);
       return;
     }
@@ -114,32 +75,12 @@ export default function LoginPage() {
   }
 
   async function handleForgotPassword() {
-    if (loginType === "roll_number" && !identifier) {
-      setError("Please enter your roll number first.");
-      return;
-    }
-    if (loginType === "email" && !identifier) {
+    if (!email) {
       setError("Please enter your email address first.");
       return;
     }
-
     const supabase = createClient();
-    let emailToReset = identifier;
-
-    if (loginType === "roll_number") {
-      const { data: profile } = await supabase
-        .from("profiles")
-        .select("email")
-        .eq("student_id", identifier.trim())
-        .single() as { data: { email: string } | null };
-      if (!profile) {
-        setError("No account found with this roll number.");
-        return;
-      }
-      emailToReset = profile.email;
-    }
-
-    const { error } = await supabase.auth.resetPasswordForEmail(emailToReset, {
+    const { error } = await supabase.auth.resetPasswordForEmail(email, {
       redirectTo: `${window.location.origin}/reset-password`,
     });
     if (error) {
@@ -166,34 +107,17 @@ export default function LoginPage() {
                 {error}
               </div>
             )}
-
             <div className="space-y-2">
-              <Label>Login With</Label>
-              <Select value={loginType} onValueChange={setLoginType}>
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="roll_number">Roll Number</SelectItem>
-                  <SelectItem value="email">Email</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="identifier">
-                {loginType === "roll_number" ? "Roll Number" : "Email"}
-              </Label>
+              <Label htmlFor="email">Email</Label>
               <Input
-                id="identifier"
-                type={loginType === "email" ? "email" : "text"}
-                placeholder={loginType === "roll_number" ? "e.g., 20240001" : "you@university.edu"}
-                value={identifier}
-                onChange={(e) => setIdentifier(e.target.value)}
+                id="email"
+                type="email"
+                placeholder="you@university.edu"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
                 required
               />
             </div>
-
             <div className="space-y-2">
               <div className="flex items-center justify-between">
                 <Label htmlFor="password">Password</Label>
@@ -214,7 +138,6 @@ export default function LoginPage() {
                 required
               />
             </div>
-
             <Button type="submit" className="w-full" disabled={loading}>
               {loading ? "Signing in..." : "Sign In"}
             </Button>
