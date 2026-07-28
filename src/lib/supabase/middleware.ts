@@ -45,32 +45,36 @@ export async function updateSession(request: NextRequest) {
   }
 
   if (user && isPublicPath && pathname !== "/") {
-    const { data: profile } = await supabase
-      .from("profiles")
-      .select("role, account_status")
-      .eq("id", user.id)
-      .single();
+    try {
+      const { data: profile } = await supabase
+        .from("profiles")
+        .select("role, account_status")
+        .eq("id", user.id)
+        .single();
 
-    if (profile) {
-      const url = request.nextUrl.clone();
-      switch (profile.role) {
-        case "super_admin":
-          url.pathname = "/admin";
-          break;
-        case "lecturer":
-          if (profile.account_status === "pending") {
-            url.pathname = "/pending";
-          } else {
-            url.pathname = "/lecturer";
-          }
-          break;
-        case "student":
-          url.pathname = "/student";
-          break;
-        default:
-          url.pathname = "/login";
+      if (profile) {
+        const url = request.nextUrl.clone();
+        switch (profile.role) {
+          case "super_admin":
+            url.pathname = "/admin";
+            break;
+          case "lecturer":
+            if (profile.account_status === "pending") {
+              url.pathname = "/pending";
+            } else {
+              url.pathname = "/lecturer";
+            }
+            break;
+          case "student":
+            url.pathname = "/student";
+            break;
+          default:
+            url.pathname = "/login";
+        }
+        return NextResponse.redirect(url);
       }
-      return NextResponse.redirect(url);
+    } catch {
+      // Profile lookup failed, let user through
     }
   }
 

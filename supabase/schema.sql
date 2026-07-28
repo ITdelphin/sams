@@ -186,14 +186,8 @@ ALTER TABLE academic_years ENABLE ROW LEVEL SECURITY;
 ALTER TABLE semesters ENABLE ROW LEVEL SECURITY;
 
 -- Profiles Policies
-CREATE POLICY "Users can view own profile" ON profiles FOR SELECT USING (auth.uid() = id);
-CREATE POLICY "Admins can view all profiles" ON profiles FOR SELECT USING (
-  EXISTS (SELECT 1 FROM profiles WHERE id = auth.uid() AND role = 'super_admin')
-);
-CREATE POLICY "Lecturers can view approved profiles" ON profiles FOR SELECT USING (
-  EXISTS (SELECT 1 FROM profiles WHERE id = auth.uid() AND role = 'lecturer' AND account_status = 'approved')
-  AND account_status = 'approved'
-);
+-- Public read for roll number login lookup
+CREATE POLICY "Public profile read for login" ON profiles FOR SELECT USING (true);
 CREATE POLICY "Users can update own profile" ON profiles FOR UPDATE USING (auth.uid() = id);
 CREATE POLICY "Admins can update any profile" ON profiles FOR UPDATE USING (
   EXISTS (SELECT 1 FROM profiles WHERE id = auth.uid() AND role = 'super_admin')

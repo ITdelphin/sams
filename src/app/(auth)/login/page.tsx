@@ -33,18 +33,24 @@ export default function LoginPage() {
         setLoading(false);
         return;
       }
-      const { data: profile } = await supabase
-        .from("profiles")
-        .select("email")
-        .eq("student_id", identifier.trim())
-        .single() as { data: { email: string } | null };
+      try {
+        const { data: profile, error: lookupError } = await supabase
+          .from("profiles")
+          .select("email")
+          .eq("student_id", identifier.trim())
+          .single();
 
-      if (!profile) {
-        setError("No account found with this roll number.");
+        if (lookupError || !profile) {
+          setError("No account found with this roll number. Please check and try again.");
+          setLoading(false);
+          return;
+        }
+        loginEmail = profile.email;
+      } catch {
+        setError("Unable to look up roll number. Please try logging in with email instead.");
         setLoading(false);
         return;
       }
-      loginEmail = profile.email;
     } else {
       if (!identifier.trim()) {
         setError("Please enter your email address.");
@@ -59,18 +65,22 @@ export default function LoginPage() {
     });
 
     if (authError) {
-      setError(authError.message);
+      if (authError.message.includes("Invalid login")) {
+        setError("Invalid credentials. Please check your roll number/email and password.");
+      } else {
+        setError(authError.message);
+      }
       setLoading(false);
       return;
     }
 
-    const { data: profile } = await supabase
+    const { data: profile, error: profileError } = await supabase
       .from("profiles")
       .select("role, account_status")
       .eq("id", data.user.id)
-      .single() as { data: { role: string; account_status: string } | null };
+      .single();
 
-    if (!profile) {
+    if (profileError || !profile) {
       setError("Profile not found. Please contact administrator.");
       setLoading(false);
       return;
