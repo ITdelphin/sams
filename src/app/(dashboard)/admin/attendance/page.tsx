@@ -21,7 +21,7 @@ interface Department {
   id: string;
   name: string;
   code: string;
-  faculty_id: string;
+  faculty_id: string | null;
   course_count?: number;
 }
 
@@ -55,7 +55,7 @@ interface AttendanceRecord {
   status: string;
   marked_at: string;
   notes: string | null;
-  profiles?: { full_name: string; student_id: string } | null;
+  profiles?: { full_name: string; student_id: string | null } | null;
 }
 
 type ViewLevel = "faculties" | "departments" | "courses" | "sessions" | "records";
@@ -227,12 +227,12 @@ export default function AdminAttendancePage() {
     return map[method] || { label: method, className: "" };
   }
 
-  const breadcrumbs = [
+  const breadcrumbs: { label: string; onClick?: () => void }[] = [
     selectedFaculty && { label: selectedFaculty.name, onClick: () => { setView("departments"); setSearch(""); } },
     selectedDepartment && { label: selectedDepartment.name, onClick: () => { setView("courses"); setSearch(""); } },
     selectedCourse && { label: selectedCourse.name, onClick: () => { setView("sessions"); setSearch(""); } },
     selectedSession && { label: `Session - ${formatDate(selectedSession.started_at)}` },
-  ].filter(Boolean);
+  ].filter((b): b is { label: string; onClick?: () => void } => Boolean(b));
 
   return (
     <div className="space-y-6">
@@ -246,7 +246,7 @@ export default function AdminAttendancePage() {
                 <span key={i} className="flex items-center gap-1">
                   <span>/</span>
                   {i < breadcrumbs.length - 1 ? (
-                    <button onClick={b.onClick} className="hover:text-primary">{b.label}</button>
+                    <button onClick={() => b.onClick?.()} className="hover:text-primary">{b.label}</button>
                   ) : (
                     <span className="text-foreground font-medium">{b.label}</span>
                   )}

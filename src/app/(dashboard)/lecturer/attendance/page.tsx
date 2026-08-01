@@ -125,7 +125,7 @@ export default function LecturerAttendancePage() {
 
       <div className="flex flex-wrap gap-4">
         <Input placeholder="Search student or course..." value={search} onChange={(e) => setSearch(e.target.value)} className="max-w-xs" />
-        <Select value={filterCourse} onValueChange={setFilterCourse}>
+        <Select value={filterCourse} onValueChange={(v) => setFilterCourse(v ?? "")}>
           <SelectTrigger className="w-[180px]"><SelectValue placeholder="All courses" /></SelectTrigger>
           <SelectContent>
             <SelectItem value="all">All Courses</SelectItem>
@@ -134,7 +134,7 @@ export default function LecturerAttendancePage() {
             ))}
           </SelectContent>
         </Select>
-        <Select value={filterStatus} onValueChange={setFilterStatus}>
+        <Select value={filterStatus} onValueChange={(v) => setFilterStatus(v ?? "")}>
           <SelectTrigger className="w-[150px]"><SelectValue placeholder="All statuses" /></SelectTrigger>
           <SelectContent>
             <SelectItem value="all">All Statuses</SelectItem>

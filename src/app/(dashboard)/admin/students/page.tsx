@@ -458,7 +458,7 @@ export default function AdminStudentsPage() {
             </div>
             <div className="space-y-2">
               <Label>Faculty</Label>
-              <Select value={editForm.faculty_id} onValueChange={(v) => setEditForm({ ...editForm, faculty_id: v })}>
+              <Select value={editForm.faculty_id} onValueChange={(v) => setEditForm({ ...editForm, faculty_id: v ?? "" })}>
                 <SelectTrigger><SelectValue placeholder="Select faculty" /></SelectTrigger>
                 <SelectContent>
                   {faculties.map((f) => (
@@ -469,7 +469,7 @@ export default function AdminStudentsPage() {
             </div>
             <div className="space-y-2">
               <Label>Department</Label>
-              <Select value={editForm.department_id} onValueChange={(v) => setEditForm({ ...editForm, department_id: v })}>
+              <Select value={editForm.department_id} onValueChange={(v) => setEditForm({ ...editForm, department_id: v ?? "" })}>
                 <SelectTrigger><SelectValue placeholder="Select department" /></SelectTrigger>
                 <SelectContent>
                   {departments.map((d) => (
@@ -480,7 +480,7 @@ export default function AdminStudentsPage() {
             </div>
             <div className="space-y-2">
               <Label>Status</Label>
-              <Select value={editForm.account_status} onValueChange={(v) => setEditForm({ ...editForm, account_status: v })}>
+              <Select value={editForm.account_status} onValueChange={(v) => setEditForm({ ...editForm, account_status: v ?? "" })}>
                 <SelectTrigger><SelectValue /></SelectTrigger>
                 <SelectContent>
                   <SelectItem value="approved">Approved</SelectItem>

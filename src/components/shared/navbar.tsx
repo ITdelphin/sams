@@ -79,12 +79,14 @@ export function Navbar({ role, links }: NavbarProps) {
     <header className="sticky top-0 z-30 flex h-16 items-center justify-between border-b border-border bg-card px-4 lg:px-6">
       <div className="flex items-center gap-4">
         <Sheet>
-          <SheetTrigger asChild>
-            <Button variant="ghost" size="icon" className="lg:hidden">
-              <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5" />
-              </svg>
-            </Button>
+          <SheetTrigger
+            render={
+              <Button variant="ghost" size="icon" className="lg:hidden" />
+            }
+          >
+            <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5" />
+            </svg>
           </SheetTrigger>
           <SheetContent side="left" className="w-64 bg-[#1E3A8A] p-0">
             <div className="flex h-16 items-center gap-3 border-b border-white/10 px-6">
@@ -135,18 +137,20 @@ export function Navbar({ role, links }: NavbarProps) {
         </Link>
 
         <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <Button variant="ghost" className="relative h-9 gap-2 rounded-full">
-              <Avatar className="h-9 w-9">
-                <AvatarFallback className="bg-sky-500/10 text-xs font-semibold text-sky-600">
-                  {initials}
-                </AvatarFallback>
-              </Avatar>
-              <span className="hidden lg:block">
-                <span className="block text-left text-sm font-medium leading-tight">{profile?.full_name}</span>
-                <span className="block text-left text-xs text-muted-foreground">{roleLabel}</span>
-              </span>
-            </Button>
+          <DropdownMenuTrigger
+            render={
+              <Button variant="ghost" className="relative h-9 gap-2 rounded-full" />
+            }
+          >
+            <Avatar className="h-9 w-9">
+              <AvatarFallback className="bg-sky-500/10 text-xs font-semibold text-sky-600">
+                {initials}
+              </AvatarFallback>
+            </Avatar>
+            <span className="hidden lg:block">
+              <span className="block text-left text-sm font-medium leading-tight">{profile?.full_name}</span>
+              <span className="block text-left text-xs text-muted-foreground">{roleLabel}</span>
+            </span>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end" className="w-48">
             <div className="px-2 py-1.5">
@@ -154,15 +158,15 @@ export function Navbar({ role, links }: NavbarProps) {
               <p className="text-xs text-muted-foreground">{profile?.email}</p>
             </div>
             <DropdownMenuSeparator />
-            <DropdownMenuItem asChild>
-              <Link href={`/${role === "super_admin" ? "admin" : role}/profile`}>
-                Profile
-              </Link>
+            <DropdownMenuItem
+              render={<Link href={`/${role === "super_admin" ? "admin" : role}/profile`} />}
+            >
+              Profile
             </DropdownMenuItem>
-            <DropdownMenuItem asChild>
-              <Link href={`/${role === "super_admin" ? "admin" : role}/settings`}>
-                Settings
-              </Link>
+            <DropdownMenuItem
+              render={<Link href={`/${role === "super_admin" ? "admin" : role}/settings`} />}
+            >
+              Settings
             </DropdownMenuItem>
             <DropdownMenuSeparator />
             <DropdownMenuItem onClick={handleLogout} className="text-destructive">

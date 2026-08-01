@@ -56,15 +56,15 @@ interface Department {
   id: string;
   name: string;
   code: string;
-  faculty_id: string;
+  faculty_id: string | null;
 }
 
 interface Program {
   id: string;
   name: string;
   code: string;
-  faculty_id: string;
-  department_id: string;
+  faculty_id: string | null;
+  department_id: string | null;
   duration_years: number;
   created_at: string;
   faculties?: { name: string };
@@ -146,8 +146,8 @@ export default function AdminProgramsPage() {
     setForm({
       name: program.name,
       code: program.code,
-      faculty_id: program.faculty_id,
-      department_id: program.department_id,
+      faculty_id: program.faculty_id ?? "",
+      department_id: program.department_id ?? "",
       duration_years: program.duration_years,
     });
     setEditDialogOpen(true);

@@ -40,7 +40,7 @@ interface Department {
   id: string;
   name: string;
   code: string;
-  faculty_id: string;
+  faculty_id: string | null;
   created_at: string;
   faculty?: Faculty;
 }
@@ -88,7 +88,7 @@ export default function DepartmentsPage() {
 
     const departmentsWithFaculty = (deptResult.data || []).map((dept) => ({
       ...dept,
-      faculty: facultyMap.get(dept.faculty_id),
+      faculty: dept.faculty_id ? facultyMap.get(dept.faculty_id) : undefined,
     }));
 
     setDepartments(departmentsWithFaculty);
@@ -118,7 +118,7 @@ export default function DepartmentsPage() {
     setEditingDepartment(department);
     setName(department.name);
     setCode(department.code);
-    setFacultyId(department.faculty_id);
+    setFacultyId(department.faculty_id ?? "");
     setDialogOpen(true);
   };
 

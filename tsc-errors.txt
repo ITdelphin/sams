@@ -1,0 +1,156 @@
+src/app/(auth)/change-password/page.tsx(106,15): error TS2345: Argument of type '{ must_change_password: boolean; updated_at: string; }' is not assignable to parameter of type 'never'.
+src/app/(auth)/change-password/page.tsx(128,22): error TS2339: Property 'role' does not exist on type 'never'.
+src/app/(auth)/login/page.tsx(103,41): error TS2339: Property 'failed_login_attempts' does not exist on type 'never'.
+src/app/(auth)/login/page.tsx(105,50): error TS2345: Argument of type '{ failed_login_attempts: number; locked_until: string; }' is not assignable to parameter of type 'never'.
+src/app/(auth)/login/page.tsx(108,37): error TS2339: Property 'id' does not exist on type 'never'.
+src/app/(auth)/login/page.tsx(113,50): error TS2345: Argument of type '{ failed_login_attempts: any; }' is not assignable to parameter of type 'never'.
+src/app/(auth)/login/page.tsx(115,37): error TS2339: Property 'id' does not exist on type 'never'.
+src/app/(auth)/login/page.tsx(136,15): error TS2339: Property 'locked_until' does not exist on type 'never'.
+src/app/(auth)/login/page.tsx(137,24): error TS2339: Property 'locked_until' does not exist on type 'never'.
+src/app/(auth)/login/page.tsx(147,17): error TS2339: Property 'account_status' does not exist on type 'never'.
+src/app/(auth)/login/page.tsx(153,17): error TS2339: Property 'account_status' does not exist on type 'never'.
+src/app/(auth)/login/page.tsx(153,59): error TS2339: Property 'account_status' does not exist on type 'never'.
+src/app/(auth)/login/page.tsx(153,100): error TS2339: Property 'account_status' does not exist on type 'never'.
+src/app/(auth)/login/page.tsx(154,49): error TS2339: Property 'account_status' does not exist on type 'never'.
+src/app/(auth)/login/page.tsx(161,15): error TS2345: Argument of type '{ failed_login_attempts: number; locked_until: null; last_login_at: string; }' is not assignable to parameter of type 'never'.
+src/app/(auth)/login/page.tsx(170,9): error TS2353: Object literal may only specify known properties, and 'user_id' does not exist in type 'never[]'.
+src/app/(auth)/login/page.tsx(179,17): error TS2339: Property 'must_change_password' does not exist on type 'never'.
+src/app/(auth)/login/page.tsx(188,21): error TS2339: Property 'role' does not exist on type 'never'.
+src/app/(auth)/register/page.tsx(175,35): error TS2339: Property 'full_name' does not exist on type 'never'.
+src/app/(auth)/register/page.tsx(176,35): error TS2339: Property 'full_name' does not exist on type 'never'.
+src/app/(auth)/register/page.tsx(263,9): error TS2353: Object literal may only specify known properties, and 'id' does not exist in type 'never[]'.
+src/app/(auth)/register/page.tsx(291,11): error TS2353: Object literal may only specify known properties, and 'user_id' does not exist in type 'never[]'.
+src/app/(auth)/register/page.tsx(431,67): error TS2345: Argument of type 'string | null' is not assignable to parameter of type 'string'.
+  Type 'null' is not assignable to type 'string'.
+src/app/(auth)/register/page.tsx(449,70): error TS2345: Argument of type 'string | null' is not assignable to parameter of type 'string'.
+  Type 'null' is not assignable to type 'string'.
+src/app/(auth)/register/page.tsx(476,65): error TS2345: Argument of type 'string | null' is not assignable to parameter of type 'string'.
+  Type 'null' is not assignable to type 'string'.
+src/app/(auth)/register/page.tsx(503,72): error TS2345: Argument of type 'string | null' is not assignable to parameter of type 'string'.
+  Type 'null' is not assignable to type 'string'.
+src/app/(auth)/register/page.tsx(521,68): error TS2345: Argument of type 'string | null' is not assignable to parameter of type 'string'.
+  Type 'null' is not assignable to type 'string'.
+src/app/(auth)/register/page.tsx(548,63): error TS2345: Argument of type 'string | null' is not assignable to parameter of type 'string'.
+  Type 'null' is not assignable to type 'string'.
+src/app/(auth)/register/page.tsx(580,64): error TS2345: Argument of type 'string | null' is not assignable to parameter of type 'string'.
+  Type 'null' is not assignable to type 'string'.
+src/app/(dashboard)/admin/academic-years/page.tsx(54,7): error TS2698: Spread types may only be created from object types.
+src/app/(dashboard)/admin/academic-years/page.tsx(55,51): error TS2339: Property 'academic_year_id' does not exist on type 'never'.
+src/app/(dashboard)/admin/academic-years/page.tsx(55,74): error TS2339: Property 'id' does not exist on type 'never'.
+src/app/(dashboard)/admin/academic-years/page.tsx(64,70): error TS2345: Argument of type '{ name: string; start_date: string; end_date: string; }' is not assignable to parameter of type 'never'.
+src/app/(dashboard)/admin/academic-years/page.tsx(67,70): error TS2345: Argument of type '{ name: string; start_date: string; end_date: string; }' is not assignable to parameter of type 'never[]'.
+  Type '{ name: string; start_date: string; end_date: string; }' is missing the following properties from type 'never[]': length, pop, push, concat, and 35 more.
+src/app/(dashboard)/admin/academic-years/page.tsx(86,50): error TS2345: Argument of type '{ is_current: boolean; }' is not assignable to parameter of type 'never'.
+src/app/(dashboard)/admin/academic-years/page.tsx(87,50): error TS2345: Argument of type '{ is_current: boolean; }' is not assignable to parameter of type 'never'.
+src/app/(dashboard)/admin/academic-years/page.tsx(102,65): error TS2345: Argument of type '{ name: string; start_date: string; end_date: string; }' is not assignable to parameter of type 'never'.
+src/app/(dashboard)/admin/academic-years/page.tsx(105,79): error TS2353: Object literal may only specify known properties, and 'academic_year_id' does not exist in type 'never[]'.
+src/app/(dashboard)/admin/academic-years/page.tsx(115,45): error TS2345: Argument of type '{ is_current: boolean; }' is not assignable to parameter of type 'never'.
+src/app/(dashboard)/admin/academic-years/page.tsx(116,45): error TS2345: Argument of type '{ is_current: boolean; }' is not assignable to parameter of type 'never'.
+src/app/(dashboard)/admin/attendance/page.tsx(94,31): error TS2339: Property 'id' does not exist on type 'never'.
+src/app/(dashboard)/admin/attendance/page.tsx(95,18): error TS2698: Spread types may only be created from object types.
+src/app/(dashboard)/admin/attendance/page.tsx(119,34): error TS2339: Property 'id' does not exist on type 'never'.
+src/app/(dashboard)/admin/attendance/page.tsx(120,18): error TS2698: Spread types may only be created from object types.
+src/app/(dashboard)/admin/attendance/page.tsx(145,30): error TS2339: Property 'id' does not exist on type 'never'.
+src/app/(dashboard)/admin/attendance/page.tsx(146,18): error TS2698: Spread types may only be created from object types.
+src/app/(dashboard)/admin/attendance/page.tsx(171,31): error TS2339: Property 'id' does not exist on type 'never'.
+src/app/(dashboard)/admin/attendance/page.tsx(172,18): error TS2698: Spread types may only be created from object types.
+src/app/(dashboard)/admin/attendance/page.tsx(249,38): error TS18047: 'b' is possibly 'null'.
+src/app/(dashboard)/admin/attendance/page.tsx(249,81): error TS18047: 'b' is possibly 'null'.
+src/app/(dashboard)/admin/attendance/page.tsx(251,68): error TS18047: 'b' is possibly 'null'.
+src/app/(dashboard)/admin/course-assignments/page.tsx(167,17): error TS2345: Argument of type '{ class_id: string; course_id: string; lecturer_id: string | null; }' is not assignable to parameter of type 'never'.
+src/app/(dashboard)/admin/course-assignments/page.tsx(185,9): error TS2353: Object literal may only specify known properties, and 'class_id' does not exist in type 'never[]'.
+src/app/(dashboard)/admin/departments/page.tsx(86,44): error TS2339: Property 'id' does not exist on type 'never'.
+src/app/(dashboard)/admin/departments/page.tsx(90,7): error TS2698: Spread types may only be created from object types.
+src/app/(dashboard)/admin/departments/page.tsx(91,36): error TS2339: Property 'faculty_id' does not exist on type 'never'.
+src/app/(dashboard)/admin/departments/page.tsx(141,17): error TS2345: Argument of type '{ name: string; code: string; faculty_id: string; }' is not assignable to parameter of type 'never'.
+src/app/(dashboard)/admin/departments/page.tsx(159,11): error TS2353: Object literal may only specify known properties, and 'name' does not exist in type 'never[]'.
+src/app/(dashboard)/admin/faculties/page.tsx(72,37): error TS2339: Property 'id' does not exist on type 'never'.
+src/app/(dashboard)/admin/faculties/page.tsx(73,18): error TS2698: Spread types may only be created from object types.
+src/app/(dashboard)/admin/faculties/page.tsx(121,17): error TS2345: Argument of type '{ name: string; code: string; }' is not assignable to parameter of type 'never'.
+src/app/(dashboard)/admin/faculties/page.tsx(134,19): error TS2353: Object literal may only specify known properties, and 'name' does not exist in type 'never[]'.
+src/app/(dashboard)/admin/lecturers/page.tsx(210,7): error TS2353: Object literal may only specify known properties, and 'id' does not exist in type 'never[]'.
+src/app/(dashboard)/admin/lecturers/page.tsx(232,17): error TS2345: Argument of type '{ lecturer_id: string; }' is not assignable to parameter of type 'never'.
+src/app/(dashboard)/admin/lecturers/page.tsx(240,15): error TS2353: Object literal may only specify known properties, and 'class_id' does not exist in type 'never[]'.
+src/app/(dashboard)/admin/lecturers/page.tsx(249,9): error TS2353: Object literal may only specify known properties, and 'user_id' does not exist in type 'never[]'.
+src/app/(dashboard)/admin/page.tsx(280,57): error TS18047: 'activityRes.data' is possibly 'null'.
+src/app/(dashboard)/admin/page.tsx(281,60): error TS18047: 'notifsRes.data' is possibly 'null'.
+src/app/(dashboard)/admin/programs/page.tsx(167,17): error TS2345: Argument of type '{ name: string; code: string; faculty_id: string; department_id: string | null; duration_years: number; }' is not assignable to parameter of type 'never'.
+src/app/(dashboard)/admin/programs/page.tsx(187,9): error TS2353: Object literal may only specify known properties, and 'name' does not exist in type 'never[]'.
+src/app/(dashboard)/admin/settings/page.tsx(55,55): error TS2345: Argument of type '{ value: string; }' is not assignable to parameter of type 'never'.
+src/app/(dashboard)/admin/settings/page.tsx(57,57): error TS2561: Object literal may only specify known properties, but 'key' does not exist in type 'never[]'. Did you mean to write 'keys'?
+src/app/(dashboard)/admin/settings/page.tsx(67,71): error TS2561: Object literal may only specify known properties, but 'key' does not exist in type 'never[]'. Did you mean to write 'keys'?
+src/app/(dashboard)/admin/students/page.tsx(129,15): error TS2345: Argument of type '{ full_name: string; phone_number: string | null; student_id: string | null; department_id: string | null; faculty_id: string | null; account_status: any; }' is not assignable to parameter of type 'never'.
+src/app/(dashboard)/admin/students/page.tsx(153,15): error TS2345: Argument of type '{ account_status: string; }' is not assignable to parameter of type 'never'.
+src/app/(dashboard)/admin/students/page.tsx(461,100): error TS2322: Type 'string | null' is not assignable to type 'string'.
+  Type 'null' is not assignable to type 'string'.
+src/app/(dashboard)/admin/students/page.tsx(472,103): error TS2322: Type 'string | null' is not assignable to type 'string'.
+  Type 'null' is not assignable to type 'string'.
+src/app/(dashboard)/admin/students/page.tsx(483,104): error TS2322: Type 'string | null' is not assignable to type 'string'.
+  Type 'null' is not assignable to type 'string'.
+src/app/(dashboard)/admin/timetable/page.tsx(196,17): error TS2345: Argument of type '{ class_id: string; course_id: string; day_of_week: number; start_time: string; end_time: string; room: string | null; }' is not assignable to parameter of type 'never'.
+src/app/(dashboard)/admin/timetable/page.tsx(217,9): error TS2353: Object literal may only specify known properties, and 'class_id' does not exist in type 'never[]'.
+src/app/(dashboard)/admin/timetable/page.tsx(320,43): error TS2322: Type 'Dispatch<SetStateAction<string>>' is not assignable to type '(value: string | null, eventDetails: SelectRootChangeEventDetails) => void'.
+  Types of parameters 'value' and 'value' are incompatible.
+    Type 'string | null' is not assignable to type 'SetStateAction<string>'.
+      Type 'null' is not assignable to type 'SetStateAction<string>'.
+src/app/(dashboard)/layout.tsx(105,23): error TS2339: Property 'account_status' does not exist on type 'never'.
+src/app/(dashboard)/layout.tsx(109,27): error TS2339: Property 'role' does not exist on type 'never'.
+src/app/(dashboard)/lecturer/attendance/page.tsx(32,56): error TS2339: Property 'id' does not exist on type 'never'.
+src/app/(dashboard)/lecturer/attendance/page.tsx(40,56): error TS2339: Property 'id' does not exist on type 'never'.
+src/app/(dashboard)/lecturer/attendance/page.tsx(128,38): error TS2322: Type 'Dispatch<SetStateAction<string>>' is not assignable to type '(value: string | null, eventDetails: SelectRootChangeEventDetails) => void'.
+  Types of parameters 'value' and 'value' are incompatible.
+    Type 'string | null' is not assignable to type 'SetStateAction<string>'.
+      Type 'null' is not assignable to type 'SetStateAction<string>'.
+src/app/(dashboard)/lecturer/attendance/page.tsx(137,38): error TS2322: Type 'Dispatch<SetStateAction<string>>' is not assignable to type '(value: string | null, eventDetails: SelectRootChangeEventDetails) => void'.
+  Types of parameters 'value' and 'value' are incompatible.
+    Type 'string | null' is not assignable to type 'SetStateAction<string>'.
+      Type 'null' is not assignable to type 'SetStateAction<string>'.
+src/app/(dashboard)/lecturer/courses/page.tsx(26,9): error TS2698: Spread types may only be created from object types.
+src/app/(dashboard)/lecturer/courses/page.tsx(27,26): error TS2339: Property 'course_enrollments' does not exist on type 'never'.
+src/app/(dashboard)/lecturer/courses/page.tsx(28,27): error TS2339: Property 'departments' does not exist on type 'never'.
+src/app/(dashboard)/lecturer/profile/page.tsx(36,34): error TS2339: Property 'full_name' does not exist on type 'never'.
+src/app/(dashboard)/lecturer/profile/page.tsx(36,71): error TS2339: Property 'phone_number' does not exist on type 'never'.
+src/app/(dashboard)/lecturer/profile/page.tsx(47,15): error TS2345: Argument of type '{ full_name: string; phone_number: string | null; }' is not assignable to parameter of type 'never'.
+src/app/(dashboard)/lecturer/sessions/page.tsx(169,7): error TS2353: Object literal may only specify known properties, and 'course_id' does not exist in type 'never[]'.
+src/app/(dashboard)/lecturer/sessions/page.tsx(189,15): error TS2345: Argument of type '{ is_active: boolean; ended_at: string; }' is not assignable to parameter of type 'never'.
+src/app/(dashboard)/lecturer/sessions/page.tsx(210,15): error TS2345: Argument of type '{ qr_code: string; qr_expires_at: string; }' is not assignable to parameter of type 'never'.
+src/app/(dashboard)/lecturer/sessions/page.tsx(318,41): error TS2322: Type 'Dispatch<SetStateAction<string>>' is not assignable to type '(value: string | null, eventDetails: SelectRootChangeEventDetails) => void'.
+  Types of parameters 'value' and 'value' are incompatible.
+    Type 'string | null' is not assignable to type 'SetStateAction<string>'.
+      Type 'null' is not assignable to type 'SetStateAction<string>'.
+src/app/(dashboard)/lecturer/sessions/page.tsx(329,41): error TS2322: Type 'Dispatch<SetStateAction<string>>' is not assignable to type '(value: string | null, eventDetails: SelectRootChangeEventDetails) => void'.
+  Types of parameters 'value' and 'value' are incompatible.
+    Type 'string | null' is not assignable to type 'SetStateAction<string>'.
+      Type 'null' is not assignable to type 'SetStateAction<string>'.
+src/app/(dashboard)/student/attendance/page.tsx(198,69): error TS2339: Property 'course_id' does not exist on type 'never'.
+src/app/(dashboard)/student/attendance/page.tsx(297,18): error TS2339: Property 'is_active' does not exist on type 'never'.
+src/app/(dashboard)/student/attendance/page.tsx(305,17): error TS2339: Property 'qr_expires_at' does not exist on type 'never'.
+src/app/(dashboard)/student/attendance/page.tsx(305,51): error TS2339: Property 'qr_expires_at' does not exist on type 'never'.
+src/app/(dashboard)/student/attendance/page.tsx(312,17): error TS2339: Property 'qr_code' does not exist on type 'never'.
+src/app/(dashboard)/student/attendance/page.tsx(336,7): error TS2353: Object literal may only specify known properties, and 'session_id' does not exist in type 'never[]'.
+src/app/(dashboard)/student/attendance/page.tsx(373,30): error TS2339: Property 'is_active' does not exist on type 'never'.
+src/app/(dashboard)/student/attendance/page.tsx(403,7): error TS2353: Object literal may only specify known properties, and 'session_id' does not exist in type 'never[]'.
+src/app/(dashboard)/student/courses/page.tsx(75,21): error TS2339: Property 'class_id' does not exist on type 'never'.
+src/app/(dashboard)/student/courses/page.tsx(80,28): error TS2339: Property 'classes' does not exist on type 'never'.
+src/app/(dashboard)/student/courses/page.tsx(85,33): error TS2339: Property 'class_id' does not exist on type 'never'.
+src/app/(dashboard)/student/courses/page.tsx(124,52): error TS2339: Property 'id' does not exist on type 'never'.
+src/app/(dashboard)/student/courses/page.tsx(127,26): error TS2339: Property 'course_id' does not exist on type 'never'.
+src/app/(dashboard)/student/courses/page.tsx(127,53): error TS2339: Property 'course_id' does not exist on type 'never'.
+src/app/(dashboard)/student/courses/page.tsx(139,30): error TS2339: Property 'id' does not exist on type 'never'.
+src/app/(dashboard)/student/courses/page.tsx(139,38): error TS2339: Property 'course_id' does not exist on type 'never'.
+src/app/(dashboard)/student/profile/page.tsx(160,15): error TS2345: Argument of type '{ full_name: string; phone_number: string | null; updated_at: string; }' is not assignable to parameter of type 'never'.
+src/app/page.tsx(23,28): error TS2339: Property 'role' does not exist on type 'never'.
+src/app/page.tsx(28,28): error TS2339: Property 'account_status' does not exist on type 'never'.
+src/components/shared/navbar.tsx(82,25): error TS2322: Type '{ children: Element; asChild: true; }' is not assignable to type 'IntrinsicAttributes & Props<unknown>'.
+  Property 'asChild' does not exist on type 'IntrinsicAttributes & Props<unknown>'.
+src/components/shared/navbar.tsx(138,32): error TS2322: Type '{ children: Element; asChild: true; }' is not assignable to type 'IntrinsicAttributes & Props<unknown>'.
+  Property 'asChild' does not exist on type 'IntrinsicAttributes & Props<unknown>'.
+src/components/shared/navbar.tsx(157,31): error TS2322: Type '{ children: Element; asChild: true; }' is not assignable to type 'IntrinsicAttributes & MenuItemProps & { inset?: boolean | undefined; variant?: "default" | "destructive" | undefined; }'.
+  Property 'asChild' does not exist on type 'IntrinsicAttributes & MenuItemProps & { inset?: boolean | undefined; variant?: "default" | "destructive" | undefined; }'.
+src/components/shared/navbar.tsx(162,31): error TS2322: Type '{ children: Element; asChild: true; }' is not assignable to type 'IntrinsicAttributes & MenuItemProps & { inset?: boolean | undefined; variant?: "default" | "destructive" | undefined; }'.
+  Property 'asChild' does not exist on type 'IntrinsicAttributes & MenuItemProps & { inset?: boolean | undefined; variant?: "default" | "destructive" | undefined; }'.
+src/lib/notifications.ts(13,5): error TS2353: Object literal may only specify known properties, and 'user_id' does not exist in type 'never[]'.
+src/lib/notifications.ts(32,5): error TS2353: Object literal may only specify known properties, and 'user_id' does not exist in type 'never[]'.
+src/lib/notifications.ts(47,13): error TS2345: Argument of type '{ is_read: boolean; }' is not assignable to parameter of type 'never'.
+src/lib/notifications.ts(56,13): error TS2345: Argument of type '{ is_read: boolean; }' is not assignable to parameter of type 'never'.
+src/lib/test-types.ts(21,7): error TS2322: Type 'string' is not assignable to type 'PostgrestQueryBuilder<{ PostgrestVersion: "12"; }, { Tables: { profiles: { Row: { id: string; name: string; }; Insert: { id: string; name: string; }; Update: { id?: string | undefined; name?: string | undefined; }; Relationships: []; }; }; Views: {}; Functions: {}; }, { ...; }, "profiles", []>'.

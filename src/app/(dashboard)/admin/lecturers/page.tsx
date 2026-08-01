@@ -250,7 +250,7 @@ export default function AdminLecturersPage() {
         action: "create_lecturer",
         entity_type: "profiles",
         entity_id: data.user.id,
-        new_value: { note: `Lecturer created with staff id ${addForm.staff_id.trim()}` },
+        new_value: `Lecturer created with staff id ${addForm.staff_id.trim()}`,
       });
     } catch {
       // non-blocking

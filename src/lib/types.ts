@@ -157,15 +157,23 @@ export interface Database {
           faculty_id?: string | null;
           created_at?: string;
         };
-        Relationships: [];
+        Relationships: [
+          {
+            foreignKeyName: "departments_faculty_id_fkey";
+            columns: ["faculty_id"];
+            isOneToOne: false;
+            referencedRelation: "faculties";
+            referencedColumns: ["id"];
+          },
+        ];
       };
       programs: {
         Row: {
           id: string;
           name: string;
           code: string;
-          faculty_id: string;
-          department_id: string;
+          faculty_id: string | null;
+          department_id: string | null;
           duration_years: number;
           created_at: string;
         };
@@ -173,8 +181,8 @@ export interface Database {
           id?: string;
           name: string;
           code: string;
-          faculty_id: string;
-          department_id: string;
+          faculty_id?: string | null;
+          department_id?: string | null;
           duration_years: number;
           created_at?: string;
         };
@@ -182,12 +190,27 @@ export interface Database {
           id?: string;
           name?: string;
           code?: string;
-          faculty_id?: string;
-          department_id?: string;
+          faculty_id?: string | null;
+          department_id?: string | null;
           duration_years?: number;
           created_at?: string;
         };
-        Relationships: [];
+        Relationships: [
+          {
+            foreignKeyName: "programs_faculty_id_fkey";
+            columns: ["faculty_id"];
+            isOneToOne: false;
+            referencedRelation: "faculties";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "programs_department_id_fkey";
+            columns: ["department_id"];
+            isOneToOne: false;
+            referencedRelation: "departments";
+            referencedColumns: ["id"];
+          },
+        ];
       };
       academic_years: {
         Row: {
@@ -244,7 +267,15 @@ export interface Database {
           is_current?: boolean;
           created_at?: string;
         };
-        Relationships: [];
+        Relationships: [
+          {
+            foreignKeyName: "semesters_academic_year_id_fkey";
+            columns: ["academic_year_id"];
+            isOneToOne: false;
+            referencedRelation: "academic_years";
+            referencedColumns: ["id"];
+          },
+        ];
       };
       courses: {
         Row: {
@@ -274,7 +305,22 @@ export interface Database {
           credits?: number;
           created_at?: string;
         };
-        Relationships: [];
+        Relationships: [
+          {
+            foreignKeyName: "courses_department_id_fkey";
+            columns: ["department_id"];
+            isOneToOne: false;
+            referencedRelation: "departments";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "courses_lecturer_id_fkey";
+            columns: ["lecturer_id"];
+            isOneToOne: false;
+            referencedRelation: "profiles";
+            referencedColumns: ["id"];
+          },
+        ];
       };
       classes: {
         Row: {
@@ -319,7 +365,43 @@ export interface Database {
           capacity?: number | null;
           created_at?: string;
         };
-        Relationships: [];
+        Relationships: [
+          {
+            foreignKeyName: "classes_faculty_id_fkey";
+            columns: ["faculty_id"];
+            isOneToOne: false;
+            referencedRelation: "faculties";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "classes_department_id_fkey";
+            columns: ["department_id"];
+            isOneToOne: false;
+            referencedRelation: "departments";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "classes_program_id_fkey";
+            columns: ["program_id"];
+            isOneToOne: false;
+            referencedRelation: "programs";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "classes_academic_year_id_fkey";
+            columns: ["academic_year_id"];
+            isOneToOne: false;
+            referencedRelation: "academic_years";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "classes_semester_id_fkey";
+            columns: ["semester_id"];
+            isOneToOne: false;
+            referencedRelation: "semesters";
+            referencedColumns: ["id"];
+          },
+        ];
       };
       course_assignments: {
         Row: {
@@ -343,7 +425,29 @@ export interface Database {
           lecturer_id?: string | null;
           created_at?: string;
         };
-        Relationships: [];
+        Relationships: [
+          {
+            foreignKeyName: "course_assignments_class_id_fkey";
+            columns: ["class_id"];
+            isOneToOne: false;
+            referencedRelation: "classes";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "course_assignments_course_id_fkey";
+            columns: ["course_id"];
+            isOneToOne: false;
+            referencedRelation: "courses";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "course_assignments_lecturer_id_fkey";
+            columns: ["lecturer_id"];
+            isOneToOne: false;
+            referencedRelation: "profiles";
+            referencedColumns: ["id"];
+          },
+        ];
       };
       timetable: {
         Row: {
@@ -376,7 +480,22 @@ export interface Database {
           room?: string | null;
           created_at?: string;
         };
-        Relationships: [];
+        Relationships: [
+          {
+            foreignKeyName: "timetable_class_id_fkey";
+            columns: ["class_id"];
+            isOneToOne: false;
+            referencedRelation: "classes";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "timetable_course_id_fkey";
+            columns: ["course_id"];
+            isOneToOne: false;
+            referencedRelation: "courses";
+            referencedColumns: ["id"];
+          },
+        ];
       };
       course_enrollments: {
         Row: {
@@ -397,7 +516,22 @@ export interface Database {
           course_id?: string;
           enrolled_at?: string;
         };
-        Relationships: [];
+        Relationships: [
+          {
+            foreignKeyName: "course_enrollments_student_id_fkey";
+            columns: ["student_id"];
+            isOneToOne: false;
+            referencedRelation: "profiles";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "course_enrollments_course_id_fkey";
+            columns: ["course_id"];
+            isOneToOne: false;
+            referencedRelation: "courses";
+            referencedColumns: ["id"];
+          },
+        ];
       };
       imported_students: {
         Row: {
@@ -481,7 +615,29 @@ export interface Database {
           ended_at?: string | null;
           created_at?: string;
         };
-        Relationships: [];
+        Relationships: [
+          {
+            foreignKeyName: "attendance_sessions_course_id_fkey";
+            columns: ["course_id"];
+            isOneToOne: false;
+            referencedRelation: "courses";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "attendance_sessions_class_id_fkey";
+            columns: ["class_id"];
+            isOneToOne: false;
+            referencedRelation: "classes";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "attendance_sessions_lecturer_id_fkey";
+            columns: ["lecturer_id"];
+            isOneToOne: false;
+            referencedRelation: "profiles";
+            referencedColumns: ["id"];
+          },
+        ];
       };
       attendance_records: {
         Row: {
@@ -514,7 +670,29 @@ export interface Database {
           notes?: string | null;
           created_at?: string;
         };
-        Relationships: [];
+        Relationships: [
+          {
+            foreignKeyName: "attendance_records_session_id_fkey";
+            columns: ["session_id"];
+            isOneToOne: false;
+            referencedRelation: "attendance_sessions";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "attendance_records_student_id_fkey";
+            columns: ["student_id"];
+            isOneToOne: false;
+            referencedRelation: "profiles";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "attendance_records_marked_by_fkey";
+            columns: ["marked_by"];
+            isOneToOne: false;
+            referencedRelation: "profiles";
+            referencedColumns: ["id"];
+          },
+        ];
       };
       notifications: {
         Row: {
@@ -544,7 +722,15 @@ export interface Database {
           is_read?: boolean;
           created_at?: string;
         };
-        Relationships: [];
+        Relationships: [
+          {
+            foreignKeyName: "notifications_user_id_fkey";
+            columns: ["user_id"];
+            isOneToOne: false;
+            referencedRelation: "profiles";
+            referencedColumns: ["id"];
+          },
+        ];
       };
       audit_logs: {
         Row: {
@@ -580,7 +766,15 @@ export interface Database {
           ip_address?: string | null;
           created_at?: string;
         };
-        Relationships: [];
+        Relationships: [
+          {
+            foreignKeyName: "audit_logs_user_id_fkey";
+            columns: ["user_id"];
+            isOneToOne: false;
+            referencedRelation: "profiles";
+            referencedColumns: ["id"];
+          },
+        ];
       };
       system_settings: {
         Row: {
@@ -604,10 +798,18 @@ export interface Database {
           updated_by?: string | null;
           updated_at?: string;
         };
-        Relationships: [];
+        Relationships: [
+          {
+            foreignKeyName: "system_settings_updated_by_fkey";
+            columns: ["updated_by"];
+            isOneToOne: false;
+            referencedRelation: "profiles";
+            referencedColumns: ["id"];
+          },
+        ];
       };
     };
-    Views: {};
-    Functions: {};
+    Views: Record<string, never>;
+    Functions: Record<string, never>;
   };
 }

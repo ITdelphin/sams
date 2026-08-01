@@ -255,7 +255,7 @@ export default function LecturerDashboardPage() {
           supabase
             .from("attendance_records")
             .select(
-              "id, marked_at, status, session:attendance_sessions(id, method, courses(name, code)), student:profiles(id, full_name, student_id)"
+              "id, marked_at, status, session:attendance_sessions(id, method, courses(name, code)), student:profiles!attendance_records_student_id_fkey(id, full_name, student_id)"
             )
             .order("marked_at", { ascending: false })
             .limit(8),

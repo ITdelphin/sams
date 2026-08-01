@@ -67,8 +67,8 @@ type ClassRow = {
 };
 
 type Faculty = { id: string; name: string };
-type Department = { id: string; name: string; faculty_id: string };
-type Program = { id: string; name: string; code: string; faculty_id: string; department_id: string };
+type Department = { id: string; name: string; faculty_id: string | null };
+type Program = { id: string; name: string; code: string; faculty_id: string | null; department_id: string | null };
 type AcademicYear = { id: string; name: string };
 type Semester = { id: string; name: string; academic_year_id: string };
 

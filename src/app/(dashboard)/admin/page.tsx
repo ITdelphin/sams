@@ -277,8 +277,10 @@ export default function AdminDashboardPage() {
       setTopCourses(top.length > 0 ? top : fallbackCourses);
 
       setRecentUsers(recent.data || []);
-      setActivity((activityRes.data as any[])?.length ? activityRes.data.map((a: any) => ({ action: a.action, time: formatDate(a.created_at) })) : fallbackActivity);
-      setNotifications((notifsRes.data as any[])?.length ? notifsRes.data.map((n: any) => ({ title: n.title, message: n.message, type: n.type, time: formatDate(n.created_at) })) : fallbackNotifs);
+      const activity = (activityRes.data as any[]) ?? [];
+      const notifs = (notifsRes.data as any[]) ?? [];
+      setActivity(activity.length ? activity.map((a: any) => ({ action: a.action, time: formatDate(a.created_at) })) : fallbackActivity);
+      setNotifications(notifs.length ? notifs.map((n: any) => ({ title: n.title, message: n.message, type: n.type, time: formatDate(n.created_at) })) : fallbackNotifs);
 
       const realWeek = buildWeekData(records);
       const hasWeek = realWeek.some((d) => d.present + d.absent + d.late + d.excused > 0);

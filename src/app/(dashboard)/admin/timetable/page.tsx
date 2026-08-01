@@ -317,7 +317,7 @@ export default function AdminTimetablePage() {
           <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
             <CardTitle>Weekly Schedule</CardTitle>
             <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
-              <Select value={classFilter} onValueChange={setClassFilter}>
+              <Select value={classFilter} onValueChange={(v) => setClassFilter(v ?? "")}>
                 <SelectTrigger className="h-8 w-full sm:w-56">
                   <SelectValue placeholder="Filter by class" />
                 </SelectTrigger>

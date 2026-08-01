@@ -27,8 +27,8 @@ import { toast } from "sonner";
 import { Eye, EyeOff, CheckCircle2, Loader2 } from "lucide-react";
 
 type Faculty = { id: string; name: string };
-type Department = { id: string; name: string; faculty_id: string };
-type Program = { id: string; name: string; code: string; department_id: string };
+type Department = { id: string; name: string; faculty_id: string | null };
+type Program = { id: string; name: string; code: string; department_id: string | null };
 type AcademicYear = { id: string; name: string };
 type Semester = { id: string; name: string; academic_year_id: string };
 type ClassItem = {
@@ -121,9 +121,9 @@ export default function RegisterPage() {
     [classes, form.programId, form.academicYearId, form.semesterId]
   );
 
-  function updateForm(field: string, value: string) {
+  function updateForm(field: string, value: string | null) {
     setForm((prev) => {
-      const updated = { ...prev, [field]: value };
+      const updated = { ...prev, [field]: value ?? "" };
       if (field === "facultyId") {
         updated.departmentId = "";
         updated.programId = "";
@@ -292,7 +292,7 @@ export default function RegisterPage() {
           action: "register",
           entity_type: "profiles",
           entity_id: data.user.id,
-          new_value: { note: "Student self-registration" },
+          new_value: "Student self-registration",
         });
       } catch {
         // non-blocking

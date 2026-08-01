@@ -315,7 +315,7 @@ export default function LecturerSessionsPage() {
           <div className="space-y-4">
             <div className="space-y-2">
               <Label>Course</Label>
-              <Select value={newCourse} onValueChange={setNewCourse}>
+              <Select value={newCourse} onValueChange={(v) => setNewCourse(v ?? "")}>
                 <SelectTrigger><SelectValue placeholder="Select course" /></SelectTrigger>
                 <SelectContent>
                   {courses.map((c) => (
@@ -326,7 +326,7 @@ export default function LecturerSessionsPage() {
             </div>
             <div className="space-y-2">
               <Label>Attendance Method</Label>
-              <Select value={newMethod} onValueChange={setNewMethod}>
+              <Select value={newMethod} onValueChange={(v) => setNewMethod(v ?? "")}>
                 <SelectTrigger><SelectValue /></SelectTrigger>
                 <SelectContent>
                   <SelectItem value="manual">Manual</SelectItem>
