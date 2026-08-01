@@ -6,14 +6,26 @@ export interface Database {
           id: string;
           email: string;
           full_name: string;
+          first_name: string | null;
+          last_name: string | null;
           phone_number: string | null;
           national_id: string | null;
           student_id: string | null;
+          staff_id: string | null;
           role: "student" | "lecturer" | "super_admin";
           account_status: "pending" | "approved" | "suspended" | "inactive" | "rejected" | "graduated";
-          department_id: string | null;
+          gender: string | null;
+          date_of_birth: string | null;
+          office: string | null;
           faculty_id: string | null;
+          department_id: string | null;
+          program_id: string | null;
+          class_id: string | null;
           profile_photo_url: string | null;
+          must_change_password: boolean;
+          failed_login_attempts: number;
+          locked_until: string | null;
+          last_login_at: string | null;
           created_at: string;
           updated_at: string;
         };
@@ -21,14 +33,26 @@ export interface Database {
           id: string;
           email: string;
           full_name: string;
+          first_name?: string | null;
+          last_name?: string | null;
           phone_number?: string | null;
           national_id?: string | null;
           student_id?: string | null;
+          staff_id?: string | null;
           role: "student" | "lecturer" | "super_admin";
           account_status?: "pending" | "approved" | "suspended" | "inactive" | "rejected" | "graduated";
-          department_id?: string | null;
+          gender?: string | null;
+          date_of_birth?: string | null;
+          office?: string | null;
           faculty_id?: string | null;
+          department_id?: string | null;
+          program_id?: string | null;
+          class_id?: string | null;
           profile_photo_url?: string | null;
+          must_change_password?: boolean;
+          failed_login_attempts?: number;
+          locked_until?: string | null;
+          last_login_at?: string | null;
           created_at?: string;
           updated_at?: string;
         };
@@ -36,16 +60,48 @@ export interface Database {
           id?: string;
           email?: string;
           full_name?: string;
+          first_name?: string | null;
+          last_name?: string | null;
           phone_number?: string | null;
           national_id?: string | null;
           student_id?: string | null;
+          staff_id?: string | null;
           role?: "student" | "lecturer" | "super_admin";
           account_status?: "pending" | "approved" | "suspended" | "inactive" | "rejected" | "graduated";
-          department_id?: string | null;
+          gender?: string | null;
+          date_of_birth?: string | null;
+          office?: string | null;
           faculty_id?: string | null;
+          department_id?: string | null;
+          program_id?: string | null;
+          class_id?: string | null;
           profile_photo_url?: string | null;
+          must_change_password?: boolean;
+          failed_login_attempts?: number;
+          locked_until?: string | null;
+          last_login_at?: string | null;
           created_at?: string;
           updated_at?: string;
+        };
+      };
+      faculties: {
+        Row: {
+          id: string;
+          name: string;
+          code: string;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          name: string;
+          code: string;
+          created_at?: string;
+        };
+        Update: {
+          id?: string;
+          name?: string;
+          code?: string;
+          created_at?: string;
         };
       };
       departments: {
@@ -71,78 +127,32 @@ export interface Database {
           created_at?: string;
         };
       };
-      faculties: {
+      programs: {
         Row: {
           id: string;
           name: string;
           code: string;
+          faculty_id: string;
+          department_id: string;
+          duration_years: number;
           created_at: string;
         };
         Insert: {
           id?: string;
           name: string;
           code: string;
+          faculty_id: string;
+          department_id: string;
+          duration_years: number;
           created_at?: string;
         };
         Update: {
           id?: string;
           name?: string;
           code?: string;
-          created_at?: string;
-        };
-      };
-      courses: {
-        Row: {
-          id: string;
-          name: string;
-          code: string;
-          department_id: string;
-          lecturer_id: string | null;
-          credits: number;
-          created_at: string;
-        };
-        Insert: {
-          id?: string;
-          name: string;
-          code: string;
-          department_id: string;
-          lecturer_id?: string | null;
-          credits?: number;
-          created_at?: string;
-        };
-        Update: {
-          id?: string;
-          name?: string;
-          code?: string;
+          faculty_id?: string;
           department_id?: string;
-          lecturer_id?: string | null;
-          credits?: number;
-          created_at?: string;
-        };
-      };
-      classes: {
-        Row: {
-          id: string;
-          name: string;
-          course_id: string;
-          schedule: string | null;
-          room: string | null;
-          created_at: string;
-        };
-        Insert: {
-          id?: string;
-          name: string;
-          course_id: string;
-          schedule?: string | null;
-          room?: string | null;
-          created_at?: string;
-        };
-        Update: {
-          id?: string;
-          name?: string;
-          course_id?: string;
-          schedule?: string | null;
-          room?: string | null;
+          duration_years?: number;
           created_at?: string;
         };
       };
@@ -199,6 +209,195 @@ export interface Database {
           end_date?: string;
           is_current?: boolean;
           created_at?: string;
+        };
+      };
+      courses: {
+        Row: {
+          id: string;
+          name: string;
+          code: string;
+          department_id: string;
+          lecturer_id: string | null;
+          credits: number;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          name: string;
+          code: string;
+          department_id: string;
+          lecturer_id?: string | null;
+          credits?: number;
+          created_at?: string;
+        };
+        Update: {
+          id?: string;
+          name?: string;
+          code?: string;
+          department_id?: string;
+          lecturer_id?: string | null;
+          credits?: number;
+          created_at?: string;
+        };
+      };
+      classes: {
+        Row: {
+          id: string;
+          name: string;
+          faculty_id: string;
+          department_id: string;
+          program_id: string;
+          academic_year_id: string;
+          semester_id: string;
+          year: number;
+          section: string;
+          room: string | null;
+          capacity: number | null;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          name: string;
+          faculty_id: string;
+          department_id: string;
+          program_id: string;
+          academic_year_id: string;
+          semester_id: string;
+          year: number;
+          section: string;
+          room?: string | null;
+          capacity?: number | null;
+          created_at?: string;
+        };
+        Update: {
+          id?: string;
+          name?: string;
+          faculty_id?: string;
+          department_id?: string;
+          program_id?: string;
+          academic_year_id?: string;
+          semester_id?: string;
+          year?: number;
+          section?: string;
+          room?: string | null;
+          capacity?: number | null;
+          created_at?: string;
+        };
+      };
+      course_assignments: {
+        Row: {
+          id: string;
+          class_id: string;
+          course_id: string;
+          lecturer_id: string | null;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          class_id: string;
+          course_id: string;
+          lecturer_id?: string | null;
+          created_at?: string;
+        };
+        Update: {
+          id?: string;
+          class_id?: string;
+          course_id?: string;
+          lecturer_id?: string | null;
+          created_at?: string;
+        };
+      };
+      timetable: {
+        Row: {
+          id: string;
+          class_id: string;
+          course_id: string;
+          day_of_week: number;
+          start_time: string;
+          end_time: string;
+          room: string | null;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          class_id: string;
+          course_id: string;
+          day_of_week: number;
+          start_time: string;
+          end_time: string;
+          room?: string | null;
+          created_at?: string;
+        };
+        Update: {
+          id?: string;
+          class_id?: string;
+          course_id?: string;
+          day_of_week?: number;
+          start_time?: string;
+          end_time?: string;
+          room?: string | null;
+          created_at?: string;
+        };
+      };
+      course_enrollments: {
+        Row: {
+          id: string;
+          student_id: string;
+          course_id: string;
+          enrolled_at: string;
+        };
+        Insert: {
+          id?: string;
+          student_id: string;
+          course_id: string;
+          enrolled_at?: string;
+        };
+        Update: {
+          id?: string;
+          student_id?: string;
+          course_id?: string;
+          enrolled_at?: string;
+        };
+      };
+      imported_students: {
+        Row: {
+          id: string;
+          registration_number: string;
+          full_name: string;
+          email: string | null;
+          faculty: string | null;
+          department: string | null;
+          program: string | null;
+          academic_year: string | null;
+          semester: string | null;
+          class_name: string | null;
+          imported_at: string;
+        };
+        Insert: {
+          id?: string;
+          registration_number: string;
+          full_name: string;
+          email?: string | null;
+          faculty?: string | null;
+          department?: string | null;
+          program?: string | null;
+          academic_year?: string | null;
+          semester?: string | null;
+          class_name?: string | null;
+          imported_at?: string;
+        };
+        Update: {
+          id?: string;
+          registration_number?: string;
+          full_name?: string;
+          email?: string | null;
+          faculty?: string | null;
+          department?: string | null;
+          program?: string | null;
+          academic_year?: string | null;
+          semester?: string | null;
+          class_name?: string | null;
+          imported_at?: string;
         };
       };
       attendance_sessions: {
@@ -359,26 +558,6 @@ export interface Database {
           value?: string;
           updated_by?: string | null;
           updated_at?: string;
-        };
-      };
-      course_enrollments: {
-        Row: {
-          id: string;
-          student_id: string;
-          course_id: string;
-          enrolled_at: string;
-        };
-        Insert: {
-          id?: string;
-          student_id: string;
-          course_id: string;
-          enrolled_at?: string;
-        };
-        Update: {
-          id?: string;
-          student_id?: string;
-          course_id?: string;
-          enrolled_at?: string;
         };
       };
     };

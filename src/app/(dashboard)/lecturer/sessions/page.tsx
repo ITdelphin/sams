@@ -13,6 +13,90 @@ import { Separator } from "@/components/ui/separator";
 import { QRCodeSVG } from "qrcode.react";
 import { generateQRCode, formatDateTime } from "@/lib/utils";
 import { toast } from "sonner";
+import { RotateCw, Clock, Copy } from "lucide-react";
+
+function QRCodeDisplay({
+  session,
+  refreshCount,
+  onManualRefresh,
+}: {
+  session: any;
+  refreshCount: number;
+  onManualRefresh: () => void;
+}) {
+  const [secondsLeft, setSecondsLeft] = useState(30);
+
+  useEffect(() => {
+    if (!session.qr_expires_at) return;
+    const tick = () => {
+      const remaining = Math.max(0, Math.round((new Date(session.qr_expires_at).getTime() - Date.now()) / 1000));
+      setSecondsLeft(remaining);
+    };
+    tick();
+    const interval = setInterval(tick, 1000);
+    return () => clearInterval(interval);
+  }, [session.qr_expires_at, refreshCount]);
+
+  const urgency = secondsLeft <= 8 ? "text-red-500" : secondsLeft <= 15 ? "text-amber-500" : "text-green-600";
+
+  return (
+    <div className="flex flex-col items-center gap-3 rounded-xl border bg-gradient-to-b from-muted/50 to-background p-4">
+      <div className="flex w-full items-center justify-between text-xs text-muted-foreground">
+        <span className="flex items-center gap-1">
+          <Clock className="size-3" />
+          Auto-refresh every 30s
+        </span>
+        <span className={`flex items-center gap-1 font-bold tabular-nums ${urgency}`}>
+          {secondsLeft}s
+        </span>
+      </div>
+
+      <div className="rounded-lg bg-white p-3 shadow-sm">
+        <QRCodeSVG
+          value={session.qr_code}
+          size={160}
+          key={`${session.id}-${refreshCount}`}
+          level="H"
+        />
+      </div>
+
+      <div className="w-full space-y-1.5">
+        <p className="text-center text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">
+          Token String for Manual Entry
+        </p>
+        <div className="flex items-center gap-2 rounded-lg border bg-secondary px-3 py-2">
+          <code className="flex-1 truncate text-xs font-mono text-foreground">{session.qr_code}</code>
+          <Button
+            size="icon"
+            variant="ghost"
+            className="h-6 w-6 shrink-0"
+            onClick={() => {
+              navigator.clipboard?.writeText(session.qr_code);
+              toast.success("Token copied!");
+            }}
+          >
+            <Copy className="size-3" />
+          </Button>
+        </div>
+        <p className="text-center text-[10px] text-muted-foreground">
+          Students paste this in the QR verification dialog.
+        </p>
+      </div>
+
+      <Button
+        variant="outline"
+        size="sm"
+        className="w-full text-xs"
+        onClick={onManualRefresh}
+      >
+        <RotateCw className="mr-1.5 size-3" />
+        Force Refresh QR Now
+      </Button>
+    </div>
+  );
+}
+
+
 
 export default function LecturerSessionsPage() {
   const [userId, setUserId] = useState("");
@@ -23,14 +107,42 @@ export default function LecturerSessionsPage() {
   const [newMethod, setNewMethod] = useState("qr_code");
   const [loading, setLoading] = useState(true);
   const [qrRefresh, setQrRefresh] = useState<Record<string, number>>({});
-  const intervalRefs = useRef<Record<string, NodeJS.Timeout>>({});
+  const timeoutRefs = useRef<Record<string, NodeJS.Timeout>>({});
 
   useEffect(() => {
     loadData();
     return () => {
-      Object.values(intervalRefs.current).forEach(clearInterval);
+      Object.values(timeoutRefs.current).forEach(clearTimeout);
     };
   }, []);
+
+  useEffect(() => {
+    const activeQRSessions = sessions.filter((s) => s.is_active && s.method === "qr_code");
+
+    // Clear timeouts for sessions no longer active
+    Object.keys(timeoutRefs.current).forEach((id) => {
+      if (!activeQRSessions.some((s) => s.id === id)) {
+        clearTimeout(timeoutRefs.current[id]);
+        delete timeoutRefs.current[id];
+      }
+    });
+
+    // Schedule timeouts for active sessions
+    activeQRSessions.forEach((session) => {
+      if (timeoutRefs.current[session.id]) {
+        clearTimeout(timeoutRefs.current[session.id]);
+      }
+
+      const expiry = session.qr_expires_at ? new Date(session.qr_expires_at).getTime() : 0;
+      const delay = Math.max(0, expiry - Date.now());
+
+      timeoutRefs.current[session.id] = setTimeout(() => {
+        refreshQR(session.id);
+      }, delay);
+    });
+
+    return () => { };
+  }, [sessions]);
 
   async function loadData() {
     const supabase = createClient();
@@ -81,9 +193,9 @@ export default function LecturerSessionsPage() {
       toast.error("Failed to end session.");
     } else {
       toast.success("Session ended.");
-      if (intervalRefs.current[sessionId]) {
-        clearInterval(intervalRefs.current[sessionId]);
-        delete intervalRefs.current[sessionId];
+      if (timeoutRefs.current[sessionId]) {
+        clearTimeout(timeoutRefs.current[sessionId]);
+        delete timeoutRefs.current[sessionId];
       }
       loadData();
     }
@@ -98,6 +210,13 @@ export default function LecturerSessionsPage() {
       .update({ qr_code: newQR, qr_expires_at: newExpiry })
       .eq("id", sessionId)
       .then(() => {
+        setSessions((prev) =>
+          prev.map((s) =>
+            s.id === sessionId
+              ? { ...s, qr_code: newQR, qr_expires_at: newExpiry }
+              : s
+          )
+        );
         setQrRefresh((prev) => ({ ...prev, [sessionId]: (prev[sessionId] || 0) + 1 }));
       });
   }
@@ -140,14 +259,11 @@ export default function LecturerSessionsPage() {
                   </div>
                   <p className="text-sm">{session.attendance_records?.length || 0} students marked</p>
                   {session.method === "qr_code" && session.qr_code && (
-                    <div className="flex flex-col items-center gap-2 rounded-lg border border-border p-4">
-                      <QRCodeSVG
-                        value={session.qr_code}
-                        size={150}
-                        key={`${session.id}-${qrRefresh[session.id] || 0}`}
-                      />
-                      <p className="text-xs text-muted-foreground">QR refreshes every 30 seconds</p>
-                    </div>
+                    <QRCodeDisplay
+                      session={session}
+                      refreshCount={qrRefresh[session.id] || 0}
+                      onManualRefresh={() => refreshQR(session.id)}
+                    />
                   )}
                   <Button variant="destructive" className="w-full" onClick={() => handleEndSession(session.id)}>
                     End Session

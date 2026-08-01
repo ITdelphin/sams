@@ -198,22 +198,6 @@ export default function LoginPage() {
     }
   }
 
-  async function handleForgotPassword() {
-    if (!email) {
-      setError("Please enter your email address first.");
-      return;
-    }
-    const supabase = createClient();
-    const { error } = await supabase.auth.resetPasswordForEmail(email, {
-      redirectTo: `${window.location.origin}/reset-password`,
-    });
-    if (error) {
-      setError(error.message);
-    } else {
-      toast.success("Password reset email sent. Check your inbox.");
-    }
-  }
-
   function handleSocial(provider: string) {
     toast.info(`${provider} sign-in is coming soon. Use your email to sign in.`);
   }
@@ -381,13 +365,12 @@ export default function LoginPage() {
                     />
                     Remember Me
                   </label>
-                  <button
-                    type="button"
-                    onClick={handleForgotPassword}
+                  <Link
+                    href="/forgot-password"
                     className="text-sm font-medium text-sky-600 transition hover:text-sky-700 hover:underline"
                   >
                     Forgot Password?
-                  </button>
+                  </Link>
                 </div>
 
                 <Button

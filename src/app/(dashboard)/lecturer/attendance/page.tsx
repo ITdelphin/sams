@@ -10,6 +10,7 @@ import { Badge } from "@/components/ui/badge";
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "@/components/ui/select";
 import { formatDate, getStatusColor, calculateAttendancePercentage } from "@/lib/utils";
 import { toast } from "sonner";
+import { exportAttendancePDF, exportAttendanceExcel } from "@/lib/reports";
 
 export default function LecturerAttendancePage() {
   const [records, setRecords] = useState<any[]>([]);
@@ -41,7 +42,7 @@ export default function LecturerAttendancePage() {
 
       const { data: recs } = await supabase
         .from("attendance_records")
-        .select("*, attendance_sessions(started_at, courses(name, code)), profiles!attendance_records_student_id_fkey(full_name)")
+        .select("*, attendance_sessions(started_at, courses(name, code)), profiles!attendance_records_student_id_fkey(full_name, student_id)")
         .in("session_id", sessionIds)
         .order("created_at", { ascending: false });
 
@@ -66,6 +67,42 @@ export default function LecturerAttendancePage() {
   const totalPresent = records.filter((r) => r.status === "present").length;
   const totalAbsent = records.filter((r) => r.status === "absent").length;
   const avgAttendance = calculateAttendancePercentage(totalPresent, records.length);
+
+  const handleExportPDF = () => {
+    if (filtered.length === 0) {
+      toast.error("No records found to export.");
+      return;
+    }
+    const reportData = filtered.map((r) => ({
+      studentName: r.profiles?.full_name || "N/A",
+      studentId: r.profiles?.student_id || "N/A",
+      courseName: r.attendance_sessions?.courses?.name || "N/A",
+      courseCode: r.attendance_sessions?.courses?.code || "N/A",
+      status: r.status,
+      sessionDate: formatDate(r.attendance_sessions?.started_at),
+      markedAt: formatDate(r.marked_at),
+    }));
+    exportAttendancePDF(reportData, "Lecturer Attendance Report");
+    toast.success("Attendance PDF generated successfully!");
+  };
+
+  const handleExportExcel = () => {
+    if (filtered.length === 0) {
+      toast.error("No records found to export.");
+      return;
+    }
+    const reportData = filtered.map((r) => ({
+      studentName: r.profiles?.full_name || "N/A",
+      studentId: r.profiles?.student_id || "N/A",
+      courseName: r.attendance_sessions?.courses?.name || "N/A",
+      courseCode: r.attendance_sessions?.courses?.code || "N/A",
+      status: r.status,
+      sessionDate: formatDate(r.attendance_sessions?.started_at),
+      markedAt: formatDate(r.marked_at),
+    }));
+    exportAttendanceExcel(reportData, "Lecturer Attendance Report");
+    toast.success("Attendance Excel generated successfully!");
+  };
 
   if (loading) {
     return (
@@ -107,8 +144,8 @@ export default function LecturerAttendancePage() {
             <SelectItem value="excused">Excused</SelectItem>
           </SelectContent>
         </Select>
-        <Button variant="outline" onClick={() => toast.success("Export feature coming soon!")}>Export PDF</Button>
-        <Button variant="outline" onClick={() => toast.success("Export feature coming soon!")}>Export Excel</Button>
+        <Button variant="outline" onClick={handleExportPDF}>Export PDF</Button>
+        <Button variant="outline" onClick={handleExportExcel}>Export Excel</Button>
       </div>
 
       <Card>

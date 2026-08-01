@@ -267,9 +267,9 @@ export default function StudentDashboardPage() {
   ];
 
   const quickActions = [
-    { label: "Scan QR Code", icon: QrCode, href: "/student/attendance", iconBg: "bg-gradient-to-br from-sky-400 to-sky-600", iconColor: "text-white", hover: "hover:shadow-sky-500/25" },
-    { label: "Face Attendance", icon: ScanFace, href: "/student/attendance", iconBg: "bg-gradient-to-br from-blue-400 to-blue-600", iconColor: "text-white", hover: "hover:shadow-blue-500/25" },
-    { label: "Fingerprint Scan", icon: Fingerprint, href: "/student/attendance", iconBg: "bg-gradient-to-br from-purple-400 to-purple-600", iconColor: "text-white", hover: "hover:shadow-purple-500/25" },
+    { label: "Scan QR Code", icon: QrCode, href: "/student/attendance?tab=mark", iconBg: "bg-gradient-to-br from-sky-400 to-sky-600", iconColor: "text-white", hover: "hover:shadow-sky-500/25" },
+    { label: "Face Attendance", icon: ScanFace, href: "/student/attendance?tab=mark", iconBg: "bg-gradient-to-br from-blue-400 to-blue-600", iconColor: "text-white", hover: "hover:shadow-blue-500/25" },
+    { label: "Fingerprint Scan", icon: Fingerprint, href: "/student/attendance?tab=mark", iconBg: "bg-gradient-to-br from-purple-400 to-purple-600", iconColor: "text-white", hover: "hover:shadow-purple-500/25" },
     { label: "Download Report", icon: Download, href: "/student/attendance", iconBg: "bg-gradient-to-br from-teal-400 to-teal-600", iconColor: "text-white", hover: "hover:shadow-teal-500/25" },
     { label: "View Schedule", icon: CalendarDays, href: "/student/courses", iconBg: "bg-gradient-to-br from-amber-400 to-amber-600", iconColor: "text-white", hover: "hover:shadow-amber-500/25" },
     { label: "View Courses", icon: BookOpen, href: "/student/courses", iconBg: "bg-gradient-to-br from-pink-400 to-pink-600", iconColor: "text-white", hover: "hover:shadow-pink-500/25" },
@@ -289,7 +289,7 @@ export default function StudentDashboardPage() {
             </p>
           </div>
           <div className="flex gap-3">
-            <Link href="/student/attendance">
+            <Link href="/student/attendance?tab=mark">
               <Button className="bg-white text-sky-700 hover:bg-sky-50">
                 <CheckCircle2 className="size-4" />
                 Mark Attendance
@@ -531,7 +531,7 @@ export default function StudentDashboardPage() {
                 ))}
               </div>
             </div>
-            <Link href="/student/attendance" className="mt-5 block">
+            <Link href="/student/attendance?tab=mark" className="mt-5 block">
               <Button className="w-full bg-sky-500 text-white hover:bg-sky-600">
                 <Play className="size-4" />
                 Join Attendance
@@ -570,7 +570,7 @@ export default function StudentDashboardPage() {
               <CardTitle>Recent Attendance</CardTitle>
               <Link href="/student/attendance">
                 <Button variant="ghost" size="sm">
-                  View all
+                  View history
                   <ArrowRight className="ml-1 size-3.5" />
                 </Button>
               </Link>
