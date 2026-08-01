@@ -9,6 +9,7 @@ import { Navbar } from "@/components/shared/navbar";
 const adminLinks = [
   { label: "Dashboard", href: "/admin", icon: "dashboard" },
   { label: "Students", href: "/admin/students", icon: "students" },
+  { label: "Import Students", href: "/admin/import-students", icon: "imports" },
   { label: "Lecturers", href: "/admin/lecturers", icon: "lecturers" },
   { label: "Faculties", href: "/admin/faculties", icon: "faculties" },
   { label: "Departments", href: "/admin/departments", icon: "departments" },
@@ -32,6 +33,7 @@ const adminGroups = [
     label: "User Management",
     links: [
       { label: "Students", href: "/admin/students", icon: "students" },
+      { label: "Import Students", href: "/admin/import-students", icon: "imports" },
       { label: "Lecturers", href: "/admin/lecturers", icon: "lecturers" },
       { label: "Departments", href: "/admin/departments", icon: "departments" },
       { label: "Courses", href: "/admin/courses", icon: "courses" },

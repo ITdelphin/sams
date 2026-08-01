@@ -25,6 +25,7 @@ import {
   CalendarClock,
   ListChecks,
   History,
+  FileUp,
 } from "lucide-react";
 
 interface SidebarLink {
@@ -47,6 +48,7 @@ interface SidebarProps {
 const iconMap: Record<string, LucideIcon> = {
   dashboard: LayoutDashboard,
   students: GraduationCap,
+  imports: FileUp,
   lecturers: Users,
   departments: Building2,
   faculties: School,
