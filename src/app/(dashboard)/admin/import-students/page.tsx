@@ -11,6 +11,7 @@ import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { toast } from "sonner";
 import {
   UploadCloud,
@@ -23,7 +24,16 @@ import {
   Users,
   Trash2,
   Database,
+  Download,
+  UserPlus,
 } from "lucide-react";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 type ParsedRow = {
   registration_number: string;
@@ -149,6 +159,7 @@ function buildRows(data: string[][]): ParsedRow[] {
   }
 
   const rows: ParsedRow[] = [];
+  const seen = new Set<string>();
   for (let i = startIndex; i < data.length; i++) {
     const cells = data[i];
     const base: Record<string, string | null> = {};
@@ -180,10 +191,14 @@ function buildRows(data: string[][]): ParsedRow[] {
     if (!reg) {
       row.valid = false;
       row.reason = "Missing registration number";
+    } else if (name && seen.has(reg)) {
+      row.valid = false;
+      row.reason = "Duplicate registration number in file";
     } else if (!name) {
       row.valid = false;
       row.reason = "Missing full name";
     }
+    if (reg) seen.add(reg);
     rows.push(row);
   }
   return rows;
@@ -195,8 +210,10 @@ export default function AdminImportStudentsPage() {
   const [fileName, setFileName] = useState("");
   const [existingCount, setExistingCount] = useState(0);
   const [defaultClass, setDefaultClass] = useState("");
-  const [classes, setClasses] = useState<{ id: string; name: string }[]>([]);
-  const [programs, setPrograms] = useState<{ id: string; name: string }[]>([]);
+  const [classes, setClasses] = useState<{ id: string; name: string; program_id: string | null; academic_year_id: string | null; semester_id: string | null }[]>([]);
+  const [programs, setPrograms] = useState<{ id: string; name: string; department_id: string | null }[]>([]);
+  const [departments, setDepartments] = useState<{ id: string; name: string; faculty_id: string | null }[]>([]);
+  const [faculties, setFaculties] = useState<{ id: string; name: string }[]>([]);
   const [defaultProgram, setDefaultProgram] = useState("");
   const [academicYear, setAcademicYear] = useState("");
   const [semester, setSemester] = useState("");
@@ -205,6 +222,20 @@ export default function AdminImportStudentsPage() {
   const [importing, setImporting] = useState(false);
   const [result, setResult] = useState<{ added: number; updated: number; skipped: number } | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const [showQuickAdd, setShowQuickAdd] = useState(false);
+  const [quickForm, setQuickForm] = useState({
+    registration_number: "",
+    full_name: "",
+    email: "",
+    facultyId: "",
+    departmentId: "",
+    programId: "",
+    academicYearId: "",
+    semesterId: "",
+    classId: "",
+  });
+  const [quickSaving, setQuickSaving] = useState(false);
 
   useEffect(() => {
     loadContext();
@@ -217,18 +248,22 @@ export default function AdminImportStudentsPage() {
 
   async function loadContext() {
     const supabase = createClient();
-    const [countRes, classesRes, programsRes, yearsRes, semsRes] = await Promise.all([
+    const [countRes, classesRes, programsRes, yearsRes, semsRes, deptsRes, facsRes] = await Promise.all([
       supabase.from("imported_students").select("id", { count: "exact", head: true }),
-      supabase.from("classes").select("id, name"),
-      supabase.from("programs").select("id, name"),
+      supabase.from("classes").select("id, name, program_id, academic_year_id, semester_id"),
+      supabase.from("programs").select("id, name, department_id"),
       supabase.from("academic_years").select("id, name").eq("is_current", true),
       supabase.from("semesters").select("id, name").eq("is_current", true),
+      supabase.from("departments").select("id, name, faculty_id"),
+      supabase.from("faculties").select("id, name"),
     ]);
     setExistingCount(countRes.count || 0);
     setClasses(classesRes.data || []);
     setPrograms(programsRes.data || []);
     setYears(yearsRes.data || []);
     setSems(semsRes.data || []);
+    setDepartments(deptsRes.data || []);
+    setFaculties(facsRes.data || []);
     if ((yearsRes.data || []).length === 1) setAcademicYear(yearsRes.data![0].name);
     if ((semsRes.data || []).length === 1) setSemester(semsRes.data![0].name);
   }
@@ -306,12 +341,15 @@ export default function AdminImportStudentsPage() {
     }));
 
     const regNumbers = insertable.map((r) => r.registration_number);
-    const existingRes = await supabase
-      .from("imported_students")
-      .select("registration_number")
-      .in("registration_number", regNumbers);
-
-    const existing = new Set((existingRes.data || []).map((r) => r.registration_number));
+    const existing = new Set<string>();
+    for (let i = 0; i < regNumbers.length; i += 500) {
+      const chunk = regNumbers.slice(i, i + 500);
+      const { data } = await supabase
+        .from("imported_students")
+        .select("registration_number")
+        .in("registration_number", chunk);
+      (data || []).forEach((r) => existing.add(r.registration_number));
+    }
 
     for (const row of insertable) {
       const { error } = await supabase
@@ -342,13 +380,128 @@ export default function AdminImportStudentsPage() {
     setRows((prev) => prev.filter((_, i) => i !== index));
   };
 
+  function downloadTemplate() {
+    const csv = `registration_number,full_name,email,faculty,department,program,academic_year,semester,class_name
+CSC-001,Alice Mwangi,alice@example.com,Science and Technology,Networking,BSC-CS,2025/2026,1,BSC-CS Year 1 Section A
+CSC-002,Brian Kimani,brian@example.com,Science and Technology,Networking,BSC-CS,2025/2026,1,BSC-CS Year 1 Section A`;
+    const blob = new Blob([csv], { type: "text/csv;charset=utf-8" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = "students-template.csv";
+    a.click();
+    URL.revokeObjectURL(url);
+  }
+
+  function updateQuickForm(field: keyof typeof quickForm, value: string) {
+    setQuickForm((prev) => {
+      const next = { ...prev, [field]: value };
+      if (field === "facultyId") {
+        next.departmentId = "";
+        next.programId = "";
+        next.classId = "";
+      }
+      if (field === "departmentId") {
+        next.programId = "";
+        next.classId = "";
+      }
+      if (field === "programId") next.classId = "";
+      if (field === "academicYearId") {
+        next.semesterId = "";
+        next.classId = "";
+      }
+      if (field === "semesterId") next.classId = "";
+      return next;
+    });
+  }
+
+  const quickDepts = useMemo(() => departments.filter((d) => d.faculty_id === quickForm.facultyId), [departments, quickForm.facultyId]);
+  const quickProgs = useMemo(() => programs.filter((p) => p.department_id === quickForm.departmentId), [programs, quickForm.departmentId]);
+  const quickClasses = useMemo(
+    () =>
+      classes.filter(
+        (c) =>
+          (!quickForm.programId || c.program_id === quickForm.programId) &&
+          (!quickForm.academicYearId || c.academic_year_id === quickForm.academicYearId) &&
+          (!quickForm.semesterId || c.semester_id === quickForm.semesterId)
+      ),
+    [classes, quickForm.programId, quickForm.academicYearId, quickForm.semesterId]
+  );
+
+  function openQuickAdd() {
+    setQuickForm({
+      registration_number: "",
+      full_name: "",
+      email: "",
+      facultyId: "",
+      departmentId: "",
+      programId: "",
+      academicYearId: years[0]?.id || "",
+      semesterId: sems[0]?.id || "",
+      classId: "",
+    });
+    setShowQuickAdd(true);
+  }
+
+  async function handleQuickAdd() {
+    if (!quickForm.registration_number.trim() || !quickForm.full_name.trim()) {
+      toast.error("Registration number and full name are required.");
+      return;
+    }
+
+    setQuickSaving(true);
+    const supabase = createClient();
+    const faculty = faculties.find((f) => f.id === quickForm.facultyId)?.name || null;
+    const department = departments.find((d) => d.id === quickForm.departmentId)?.name || null;
+    const program = programs.find((p) => p.id === quickForm.programId)?.name || null;
+    const year = years.find((y) => y.id === quickForm.academicYearId)?.name || null;
+    const sem = sems.find((s) => s.id === quickForm.semesterId)?.name || null;
+    const cls = classes.find((c) => c.id === quickForm.classId)?.name || null;
+
+    const { error } = await supabase.from("imported_students").upsert(
+      {
+        registration_number: quickForm.registration_number.trim(),
+        full_name: quickForm.full_name.trim(),
+        email: quickForm.email.trim() || null,
+        faculty,
+        department,
+        program,
+        academic_year: year,
+        semester: sem,
+        class_name: cls,
+      },
+      { onConflict: "registration_number" }
+    );
+
+    setQuickSaving(false);
+    if (error) {
+      toast.error("Failed to add student: " + error.message);
+      return;
+    }
+    toast.success(`Student record ${cls ? "saved with class " + cls : "saved"}.`);
+    setShowQuickAdd(false);
+    loadContext();
+  }
+
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="text-2xl font-bold text-foreground">Import Students</h1>
-        <p className="text-sm text-muted-foreground mt-1">
-          Bulk-import students from a CSV file. Records are keyed by registration number.
-        </p>
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <div>
+          <h1 className="text-2xl font-bold text-foreground">Import Students</h1>
+          <p className="text-sm text-muted-foreground mt-1">
+            Bulk-import students from a CSV file or add a single record. Records are keyed by registration number.
+          </p>
+        </div>
+        <div className="flex gap-2">
+          <Button variant="outline" onClick={downloadTemplate}>
+            <Download className="mr-2 h-4 w-4" />
+            Template
+          </Button>
+          <Button onClick={openQuickAdd}>
+            <UserPlus className="mr-2 h-4 w-4" />
+            Add Single Student
+          </Button>
+        </div>
       </div>
 
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
@@ -614,6 +767,142 @@ CSC-003,Carol Njuguna,carol@example.com,Computer Science,Software Engineering,BS
           </pre>
         </CardContent>
       </Card>
+
+      <Dialog open={showQuickAdd} onOpenChange={setShowQuickAdd}>
+        <DialogContent className="max-w-lg">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <UserPlus className="size-5 text-sky-500" />
+              Add Single Student Record
+            </DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <p className="text-xs text-muted-foreground">
+              Add one student to the imported records. They can then register their account using their
+              registration number.
+            </p>
+            <div className="grid gap-3 sm:grid-cols-2">
+              <div className="space-y-1.5">
+                <Label htmlFor="qa-reg">Registration Number *</Label>
+                <Input
+                  id="qa-reg"
+                  placeholder="e.g. STU-2026-0042"
+                  value={quickForm.registration_number}
+                  onChange={(e) => updateQuickForm("registration_number", e.target.value)}
+                />
+              </div>
+              <div className="space-y-1.5">
+                <Label htmlFor="qa-email">Email</Label>
+                <Input
+                  id="qa-email"
+                  type="email"
+                  placeholder="student@university.edu"
+                  value={quickForm.email}
+                  onChange={(e) => updateQuickForm("email", e.target.value)}
+                />
+              </div>
+            </div>
+            <div className="space-y-1.5">
+              <Label htmlFor="qa-name">Full Name *</Label>
+              <Input
+                id="qa-name"
+                placeholder="Jane Doe"
+                value={quickForm.full_name}
+                onChange={(e) => updateQuickForm("full_name", e.target.value)}
+              />
+            </div>
+            <Separator />
+            <div className="grid gap-3 sm:grid-cols-2">
+              <div className="space-y-1.5">
+                <Label>Faculty</Label>
+                <Select value={quickForm.facultyId} onValueChange={(v) => updateQuickForm("facultyId", v ?? "")}>
+                  <SelectTrigger><SelectValue placeholder="Select faculty" /></SelectTrigger>
+                  <SelectContent>
+                    {faculties.map((f) => (
+                      <SelectItem key={f.id} value={f.id}>{f.name}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="space-y-1.5">
+                <Label>Department</Label>
+                <Select value={quickForm.departmentId} onValueChange={(v) => updateQuickForm("departmentId", v ?? "")} disabled={!quickForm.facultyId}>
+                  <SelectTrigger><SelectValue placeholder={quickForm.facultyId ? "Select department" : "Select faculty first"} /></SelectTrigger>
+                  <SelectContent>
+                    {quickDepts.map((d) => (
+                      <SelectItem key={d.id} value={d.id}>{d.name}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+            <div className="grid gap-3 sm:grid-cols-2">
+              <div className="space-y-1.5">
+                <Label>Program</Label>
+                <Select value={quickForm.programId} onValueChange={(v) => updateQuickForm("programId", v ?? "")} disabled={!quickForm.departmentId}>
+                  <SelectTrigger><SelectValue placeholder={quickForm.departmentId ? "Select program" : "Select department first"} /></SelectTrigger>
+                  <SelectContent>
+                    {quickProgs.map((p) => (
+                      <SelectItem key={p.id} value={p.id}>{p.name}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="space-y-1.5">
+                <Label>Class</Label>
+                <Select value={quickForm.classId} onValueChange={(v) => updateQuickForm("classId", v ?? "")} disabled={!quickForm.programId}>
+                  <SelectTrigger><SelectValue placeholder={quickForm.programId ? "Select class" : "Select program first"} /></SelectTrigger>
+                  <SelectContent>
+                    {quickClasses.length === 0 && (
+                      <div className="px-3 py-2 text-xs text-muted-foreground">No classes match the selected options</div>
+                    )}
+                    {quickClasses.map((c) => (
+                      <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+            <div className="grid gap-3 sm:grid-cols-2">
+              <div className="space-y-1.5">
+                <Label>Academic Year</Label>
+                <Select value={quickForm.academicYearId} onValueChange={(v) => updateQuickForm("academicYearId", v ?? "")}>
+                  <SelectTrigger><SelectValue placeholder="Select year" /></SelectTrigger>
+                  <SelectContent>
+                    {years.map((y) => (
+                      <SelectItem key={y.id} value={y.id}>{y.name}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="space-y-1.5">
+                <Label>Semester</Label>
+                <Select value={quickForm.semesterId} onValueChange={(v) => updateQuickForm("semesterId", v ?? "")}>
+                  <SelectTrigger><SelectValue placeholder="Select semester" /></SelectTrigger>
+                  <SelectContent>
+                    {sems.map((s) => (
+                      <SelectItem key={s.id} value={s.id}>{s.name}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+            <div className="flex justify-end gap-2 pt-2 border-t">
+              <Button variant="outline" onClick={() => setShowQuickAdd(false)} disabled={quickSaving}>Cancel</Button>
+              <Button onClick={handleQuickAdd} disabled={quickSaving || !quickForm.registration_number.trim() || !quickForm.full_name.trim()} className="bg-sky-500 hover:bg-sky-600 text-white">
+                {quickSaving ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    Saving...
+                  </>
+                ) : (
+                  "Add Record"
+                )}
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState, useRef } from "react";
+import Link from "next/link";
 import { createClient } from "@/lib/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -13,7 +14,19 @@ import { Separator } from "@/components/ui/separator";
 import { QRCodeSVG } from "qrcode.react";
 import { generateQRCode, formatDateTime } from "@/lib/utils";
 import { toast } from "sonner";
-import { RotateCw, Clock, Copy } from "lucide-react";
+import { RotateCw, Clock, Copy, ClipboardList } from "lucide-react";
+
+const METHOD_LABELS: Record<string, string> = {
+  manual: "Manual",
+  qr_code: "QR Code",
+  student_id_card: "Student ID Card",
+  face_recognition: "Face Recognition",
+  fingerprint: "Fingerprint",
+};
+
+function methodLabel(method: string): string {
+  return METHOD_LABELS[method] || method.replace(/_/g, " ");
+}
 
 function QRCodeDisplay({
   session,
@@ -107,6 +120,7 @@ export default function LecturerSessionsPage() {
   const [newMethod, setNewMethod] = useState("qr_code");
   const [loading, setLoading] = useState(true);
   const [qrRefresh, setQrRefresh] = useState<Record<string, number>>({});
+  const [enrolledMap, setEnrolledMap] = useState<Record<string, number>>({});
   const timeoutRefs = useRef<Record<string, NodeJS.Timeout>>({});
 
   useEffect(() => {
@@ -150,12 +164,18 @@ export default function LecturerSessionsPage() {
     if (!user) return;
     setUserId(user.id);
 
-    const [coursesRes, sessionsRes] = await Promise.all([
+    const [coursesRes, sessionsRes, enrollRes] = await Promise.all([
       supabase.from("courses").select("*").eq("lecturer_id", user.id),
       supabase.from("attendance_sessions").select("*, courses(name, code), attendance_records(id)").eq("lecturer_id", user.id).order("created_at", { ascending: false }),
+      supabase.from("course_enrollments").select("course_id"),
     ]);
     setCourses(coursesRes.data || []);
     setSessions(sessionsRes.data || []);
+    const enrolled: Record<string, number> = {};
+    (enrollRes.data || []).forEach((e) => {
+      enrolled[e.course_id] = (enrolled[e.course_id] || 0) + 1;
+    });
+    setEnrolledMap(enrolled);
     setLoading(false);
   }
 
@@ -253,11 +273,26 @@ export default function LecturerSessionsPage() {
                   <Badge className="bg-green-100 text-green-800">Active</Badge>
                 </CardHeader>
                 <CardContent className="space-y-3">
-                  <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                    <Badge variant="outline">{session.method}</Badge>
+                  <div className="flex flex-wrap items-center gap-2 text-sm text-muted-foreground">
+                    <Badge variant="outline">{methodLabel(session.method)}</Badge>
                     <span>Started {formatDateTime(session.started_at)}</span>
                   </div>
-                  <p className="text-sm">{session.attendance_records?.length || 0} students marked</p>
+                  <div className="grid grid-cols-3 gap-2">
+                    <div className="rounded-lg border bg-secondary/40 p-2 text-center">
+                      <p className="text-[10px] uppercase tracking-wide text-muted-foreground">Enrolled</p>
+                      <p className="text-lg font-bold text-foreground">{enrolledMap[session.course_id] || 0}</p>
+                    </div>
+                    <div className="rounded-lg border bg-secondary/40 p-2 text-center">
+                      <p className="text-[10px] uppercase tracking-wide text-muted-foreground">Present</p>
+                      <p className="text-lg font-bold text-green-600">{session.attendance_records?.length || 0}</p>
+                    </div>
+                    <div className="rounded-lg border bg-secondary/40 p-2 text-center">
+                      <p className="text-[10px] uppercase tracking-wide text-muted-foreground">Pending</p>
+                      <p className="text-lg font-bold text-amber-600">
+                        {Math.max(0, (enrolledMap[session.course_id] || 0) - (session.attendance_records?.length || 0))}
+                      </p>
+                    </div>
+                  </div>
                   {session.method === "qr_code" && session.qr_code && (
                     <QRCodeDisplay
                       session={session}
@@ -265,6 +300,10 @@ export default function LecturerSessionsPage() {
                       onManualRefresh={() => refreshQR(session.id)}
                     />
                   )}
+                  <Button render={<Link href={`/lecturer/attendance/mark?session=${session.id}`} />} variant="outline" className="w-full">
+                    <ClipboardList className="mr-2 h-4 w-4" />
+                    Mark Attendance
+                  </Button>
                   <Button variant="destructive" className="w-full" onClick={() => handleEndSession(session.id)}>
                     End Session
                   </Button>
@@ -296,7 +335,7 @@ export default function LecturerSessionsPage() {
                   {completedSessions.map((s) => (
                     <TableRow key={s.id}>
                       <TableCell className="font-medium">{s.courses?.name}</TableCell>
-                      <TableCell><Badge variant="outline">{s.method}</Badge></TableCell>
+                      <TableCell><Badge variant="outline">{methodLabel(s.method)}</Badge></TableCell>
                       <TableCell className="text-sm">{formatDateTime(s.started_at)}</TableCell>
                       <TableCell className="text-sm">{s.ended_at ? formatDateTime(s.ended_at) : "-"}</TableCell>
                       <TableCell>{s.attendance_records?.length || 0} students</TableCell>

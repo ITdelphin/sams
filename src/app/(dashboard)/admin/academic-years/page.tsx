@@ -19,6 +19,8 @@ interface AcademicYear {
   end_date: string;
   is_current: boolean;
   semesters?: Semester[];
+  classes_count?: number;
+  students_count?: number;
 }
 
 interface Semester {
@@ -47,25 +49,46 @@ export default function AdminAcademicYearsPage() {
 
   async function loadData() {
     const supabase = createClient();
-    const { data: yearsData } = await supabase.from("academic_years").select("*").order("start_date", { ascending: false });
-    const { data: semsData } = await supabase.from("semesters").select("*").order("start_date");
+    const [yearsRes, semsRes, classesRes, studentsRes] = await Promise.all([
+      supabase.from("academic_years").select("*").order("start_date", { ascending: false }),
+      supabase.from("semesters").select("*").order("start_date"),
+      supabase.from("classes").select("id, academic_year_id"),
+      supabase.from("profiles").select("class_id").eq("role", "student"),
+    ]);
 
-    const yearsWithSems = (yearsData || []).map((y) => ({
-      ...y,
-      semesters: (semsData || []).filter((s) => s.academic_year_id === y.id),
-    }));
+    const semsData = semsRes.data || [];
+    const classesData = classesRes.data || [];
+    const studentsData = studentsRes.data || [];
+
+    const yearsWithSems = (yearsRes.data || []).map((y) => {
+      const classIds = new Set(classesData.filter((c) => c.academic_year_id === y.id).map((c) => c.id));
+      return {
+        ...y,
+        semesters: semsData.filter((s) => s.academic_year_id === y.id),
+        classes_count: classesData.filter((c) => c.academic_year_id === y.id).length,
+        students_count: studentsData.filter((s) => s.class_id && classIds.has(s.class_id)).length,
+      };
+    });
     setYears(yearsWithSems);
     setLoading(false);
   }
 
   async function handleSaveYear() {
+    if (!yearForm.name.trim()) {
+      toast.error("Name is required.");
+      return;
+    }
+    if (!yearForm.start_date || !yearForm.end_date) {
+      toast.error("Start and end dates are required.");
+      return;
+    }
     const supabase = createClient();
     if (editingYear) {
       const { error } = await supabase.from("academic_years").update(yearForm).eq("id", editingYear.id);
-      if (error) { toast.error("Failed to update."); return; }
+      if (error) { toast.error("Failed to update: " + error.message); return; }
     } else {
       const { error } = await supabase.from("academic_years").insert(yearForm);
-      if (error) { toast.error("Failed to create."); return; }
+      if (error) { toast.error("Failed to create: " + error.message); return; }
     }
     toast.success(editingYear ? "Academic year updated." : "Academic year created.");
     setShowYearDialog(false);
@@ -75,8 +98,15 @@ export default function AdminAcademicYearsPage() {
   }
 
   async function handleDeleteYear(id: string) {
+    if (!window.confirm("Delete this academic year? Semesters and classes linked to it may be blocked.")) {
+      return;
+    }
     const supabase = createClient();
-    await supabase.from("academic_years").delete().eq("id", id);
+    const { error } = await supabase.from("academic_years").delete().eq("id", id);
+    if (error) {
+      toast.error("Could not delete: " + error.message);
+      return;
+    }
     toast.success("Deleted.");
     loadData();
   }
@@ -100,13 +130,25 @@ export default function AdminAcademicYearsPage() {
     const supabase = createClient();
     if (editingSemester) {
       const { error } = await supabase.from("semesters").update({ ...semForm }).eq("id", editingSemester.id);
-      if (error) { toast.error("Failed to update."); return; }
+      if (error) { toast.error("Failed to update: " + error.message); return; }
     } else {
       const { error } = await supabase.from("semesters").insert({ ...semForm, academic_year_id: selectedYearId });
-      if (error) { toast.error("Failed to create."); return; }
+      if (error) { toast.error("Failed to create: " + error.message); return; }
     }
     toast.success(editingSemester ? "Semester updated." : "Semester created.");
     setShowSemesterDialog(false);
+    loadData();
+  }
+
+  async function handleDeleteSemester(semId: string) {
+    if (!window.confirm("Delete this semester?")) return;
+    const supabase = createClient();
+    const { error } = await supabase.from("semesters").delete().eq("id", semId);
+    if (error) {
+      toast.error("Could not delete: " + error.message);
+      return;
+    }
+    toast.success("Semester deleted.");
     loadData();
   }
 
@@ -155,8 +197,21 @@ export default function AdminAcademicYearsPage() {
                 </div>
               </CardHeader>
               <CardContent className="space-y-4">
-                <div className="text-sm text-muted-foreground">
-                  {formatDate(year.start_date)} - {formatDate(year.end_date)}
+                <div className="flex flex-wrap items-center justify-between gap-3">
+                  <div className="text-sm text-muted-foreground">
+                    {formatDate(year.start_date)} - {formatDate(year.end_date)}
+                  </div>
+                  <div className="flex flex-wrap gap-2">
+                    <span className="rounded-md border bg-secondary px-2 py-1 text-xs text-foreground">
+                      {year.semesters?.length || 0} semester{(year.semesters?.length || 0) === 1 ? "" : "s"}
+                    </span>
+                    <span className="rounded-md border bg-secondary px-2 py-1 text-xs text-foreground">
+                      {year.classes_count ?? 0} classes
+                    </span>
+                    <span className="rounded-md border bg-secondary px-2 py-1 text-xs text-foreground">
+                      {year.students_count ?? 0} students
+                    </span>
+                  </div>
                 </div>
                 <Separator />
                 <div className="flex items-center justify-between">
@@ -177,6 +232,7 @@ export default function AdminAcademicYearsPage() {
                             <Button variant="ghost" size="sm" onClick={() => handleSetCurrentSemester(sem.id, year.id)}>Set Current</Button>
                           )}
                           <Button variant="ghost" size="sm" onClick={() => { setEditingSemester(sem); setSelectedYearId(year.id); setSemForm({ name: sem.name, start_date: sem.start_date, end_date: sem.end_date }); setShowSemesterDialog(true); }}>Edit</Button>
+                          <Button variant="ghost" size="sm" className="text-destructive" onClick={() => handleDeleteSemester(sem.id)}>Delete</Button>
                         </div>
                       </div>
                     ))}

@@ -54,9 +54,12 @@ export default function LecturerMarkAttendancePage() {
       .eq("lecturer_id", user.id)
       .eq("is_active", true)
       .order("started_at", { ascending: false });
-    setSessions(data || []);
-    if (data && data.length > 0) {
-      setSelectedSessionId((prev) => prev || data[0].id);
+    const list = data || [];
+    const requested = typeof window !== "undefined" ? new URLSearchParams(window.location.search).get("session") : null;
+    setSessions(list);
+    if (list.length > 0) {
+      const target = requested && list.some((s) => s.id === requested) ? requested : list[0].id;
+      setSelectedSessionId(target);
     } else {
       setSelectedSessionId("");
     }
