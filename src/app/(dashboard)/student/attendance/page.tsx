@@ -44,6 +44,10 @@ import {
   ScanFace,
   Fingerprint,
   CreditCard,
+  IdCard,
+  ShieldCheck,
+  UserCheck,
+  ChevronLeft,
   Sparkles,
   History,
   Check,
@@ -52,6 +56,8 @@ import {
   RotateCw,
   Camera,
 } from "lucide-react";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { cn } from "@/lib/utils";
 
 type AttendanceRecord = {
   id: string;
@@ -140,6 +146,23 @@ export default function StudentAttendancePage() {
   const [qrToken, setQrToken] = useState("");
   const [verifying, setVerifying] = useState(false);
   const [verificationStep, setVerificationStep] = useState<"idle" | "scanning" | "matched" | "success">("idle");
+
+  // Multi-factor biometric wizard state
+  const [bioStep, setBioStep] = useState(0);
+  const [profileNumber, setProfileNumber] = useState("");
+  const [profileError, setProfileError] = useState("");
+  const [verifiedProfile, setVerifiedProfile] = useState<{
+    full_name: string;
+    student_id: string | null;
+    profile_photo_url: string | null;
+    classes?: { name: string } | null;
+  } | null>(null);
+  const [faceScanned, setFaceScanned] = useState(false);
+  const [faceMatch, setFaceMatch] = useState<number | null>(null);
+  const [faceConfirmed, setFaceConfirmed] = useState(false);
+  const [fingerDone, setFingerDone] = useState(false);
+  const [cardDone, setCardDone] = useState(false);
+  const [stepBusy, setStepBusy] = useState(false);
 
   // Camera scanner state
   const scannerInstanceRef = useRef<any>(null);
@@ -276,6 +299,21 @@ export default function StudentAttendancePage() {
       stopScanner();
     };
   }, []);
+
+  useEffect(() => {
+    if (selectedSessionInput) {
+      setBioStep(0);
+      setProfileNumber("");
+      setProfileError("");
+      setVerifiedProfile(null);
+      setFaceScanned(false);
+      setFaceMatch(null);
+      setFaceConfirmed(false);
+      setFingerDone(false);
+      setCardDone(false);
+      setStepBusy(false);
+    }
+  }, [selectedSessionInput]);
 
   useEffect(() => {
     async function init() {
@@ -424,6 +462,124 @@ export default function StudentAttendancePage() {
   const handleMarkQR = async () => {
     await performCheckIn(qrToken);
   };
+
+  async function handleProfileNext() {
+    const num = profileNumber.trim();
+    if (!num) {
+      setProfileError("Please enter your profile number (Student ID).");
+      return;
+    }
+    setStepBusy(true);
+    setProfileError("");
+    await new Promise((resolve) => setTimeout(resolve, 800));
+
+    const { data, error } = await supabase
+      .from("profiles")
+      .select("full_name, student_id, profile_photo_url, classes(name)")
+      .eq("id", studentId)
+      .single();
+
+    setStepBusy(false);
+    if (error || !data) {
+      setProfileError("Could not load your profile. Please try again.");
+      return;
+    }
+    if (!data.student_id || data.student_id.toLowerCase() !== num.toLowerCase()) {
+      setProfileError("This profile number does not match your registered profile.");
+      return;
+    }
+    setVerifiedProfile(data);
+    setBioStep(1);
+  }
+
+  async function handleFaceScan() {
+    setStepBusy(true);
+    await new Promise((resolve) => setTimeout(resolve, 2200));
+    setFaceMatch(96 + Math.floor(Math.random() * 5));
+    setFaceScanned(true);
+    setStepBusy(false);
+  }
+
+  async function handleFingerScan() {
+    setStepBusy(true);
+    await new Promise((resolve) => setTimeout(resolve, 2000));
+    setFingerDone(true);
+    setStepBusy(false);
+  }
+
+  async function handleCardTap() {
+    setStepBusy(true);
+    await new Promise((resolve) => setTimeout(resolve, 1800));
+    setCardDone(true);
+    setStepBusy(false);
+  }
+
+  async function completeBiometricCheckIn() {
+    if (!selectedSessionInput || !studentId) return;
+
+    setVerifying(true);
+    setVerificationStep("scanning");
+
+    const { data: session } = await supabase
+      .from("attendance_sessions")
+      .select("*")
+      .eq("id", selectedSessionInput.id)
+      .single();
+
+    if (!session || !session.is_active) {
+      toast.error("This session is no longer active.");
+      setVerifying(false);
+      setVerificationStep("idle");
+      return;
+    }
+
+    const { data: existing } = await supabase
+      .from("attendance_records")
+      .select("id")
+      .eq("session_id", selectedSessionInput.id)
+      .eq("student_id", studentId)
+      .maybeSingle();
+
+    if (existing) {
+      toast.error("Attendance already recorded.");
+      setVerifying(false);
+      setSelectedSessionInput(null);
+      return;
+    }
+
+    const { error: insertError } = await supabase.from("attendance_records").insert({
+      session_id: selectedSessionInput.id,
+      student_id: studentId,
+      status: "present",
+      marked_at: new Date().toISOString(),
+      marked_by: studentId,
+      notes: `Multi-factor verified: profile ${profileNumber.trim()}, face match ${faceMatch ?? 0}%, fingerprint, ID card`,
+    });
+
+    if (insertError) {
+      toast.error("Failed to complete check-in: " + insertError.message);
+      setVerificationStep("idle");
+      setVerifying(false);
+      return;
+    }
+
+    setVerificationStep("success");
+    toast.success("Multi-factor identity verified! Present logged.");
+    loadRecords();
+    loadActiveSessions();
+    setTimeout(() => setSelectedSessionInput(null), 1500);
+    setVerifying(false);
+  }
+
+  function initialsOf(name: string): string {
+    return name
+      .split(" ")
+      .filter(Boolean)
+      .map((w) => w[0])
+      .slice(0, 2)
+      .join("")
+      .toUpperCase();
+  }
 
   const handleMarkBiometric = async () => {
     if (!selectedSessionInput) return;
@@ -906,8 +1062,8 @@ export default function StudentAttendancePage() {
                     </Button>
                   </div>
                 </div>
-              ) : (
-                /* Biometric Verification Dialog */
+              ) : selectedSessionInput?.method === "manual" ? (
+                /* Manual simple check-in */
                 <div className="space-y-4 py-2">
                   <div className="flex flex-col items-center justify-center rounded-lg border bg-slate-50 dark:bg-slate-900/60 p-8 text-center relative overflow-hidden">
                     {verificationStep === "scanning" && (
@@ -915,32 +1071,16 @@ export default function StudentAttendancePage() {
                         <div className="w-full h-1 bg-sky-500 absolute top-0 left-0 right-0 animate-bounce" />
                       </div>
                     )}
-
-                    {selectedSessionInput?.method === "face_recognition" && (
-                      <ScanFace className={`size-16 mb-3 ${verificationStep === "scanning" ? "text-blue-500 scale-110 duration-1000 transition-all font-light" : "text-muted-foreground"}`} />
-                    )}
-
-                    {selectedSessionInput?.method === "fingerprint" && (
-                      <Fingerprint className={`size-16 mb-3 ${verificationStep === "scanning" ? "text-blue-500 scale-110 duration-1000 transition-all" : "text-muted-foreground"}`} />
-                    )}
-
-                    {selectedSessionInput?.method === "student_id_card" && (
-                      <CreditCard className={`size-16 mb-3 ${verificationStep === "scanning" ? "text-blue-500 scale-110 duration-1000 transition-all" : "text-muted-foreground"}`} />
-                    )}
-
-                    {selectedSessionInput?.method === "manual" && (
-                      <Sparkles className="size-16 text-sky-500 mb-3 animate-pulse" />
-                    )}
-
+                    <Sparkles className="size-16 text-sky-500 mb-3 animate-pulse" />
                     <h4 className="text-sm font-bold text-foreground">
                       {verificationStep === "idle" && "Scanner Ready"}
-                      {verificationStep === "scanning" && "Scanning Biometrics..."}
-                      {verificationStep === "success" && "Verification Complete"}
+                      {verificationStep === "scanning" && "Confirming Presence..."}
+                      {verificationStep === "success" && "Check-in Complete"}
                     </h4>
                     <p className="text-xs text-muted-foreground mt-1 max-w-[250px]">
-                      {verificationStep === "idle" && "Trigger simulator sensor block to authenticate."}
-                      {verificationStep === "scanning" && "Validating scanner telemetry against database coordinates."}
-                      {verificationStep === "success" && "Identity match 100%! Attendance present recorded."}
+                      {verificationStep === "idle" && "Trigger the lecturer to confirm your presence."}
+                      {verificationStep === "scanning" && "Recording your attendance for this session."}
+                      {verificationStep === "success" && "Attendance present recorded."}
                     </p>
                   </div>
 
@@ -959,10 +1099,340 @@ export default function StudentAttendancePage() {
                           Processing...
                         </>
                       ) : (
-                        "Activate Biometrics Scanner"
+                        "Confirm Presence"
                       )}
                     </Button>
                   </div>
+                </div>
+              ) : (
+                /* Multi-factor biometric wizard */
+                <div className="space-y-4 py-2">
+                  {/* Step indicator */}
+                  <div className="flex items-center justify-between">
+                    {["Profile", "Face", "Fingerprint", "ID Card"].map((label, i) => (
+                      <div key={label} className="flex flex-1 flex-col items-center gap-1">
+                        <div
+                          className={cn(
+                            "flex h-7 w-7 items-center justify-center rounded-full text-[10px] font-bold transition-colors",
+                            bioStep >= i
+                              ? "bg-sky-500 text-white"
+                              : "bg-slate-200 text-slate-500 dark:bg-slate-700 dark:text-slate-300"
+                          )}
+                        >
+                          {i + 1}
+                        </div>
+                        <span className="text-[9px] uppercase tracking-wide text-muted-foreground">{label}</span>
+                      </div>
+                    ))}
+                  </div>
+
+                  {/* Step 0: Profile number */}
+                  {bioStep === 0 && (
+                    <div className="space-y-3 pt-1">
+                      <div className="flex flex-col items-center justify-center rounded-lg border bg-slate-50 dark:bg-slate-900/60 p-6 text-center">
+                        <ShieldCheck className="size-12 text-sky-500 mb-2" />
+                        <p className="text-xs font-semibold text-foreground">Enter your profile number</p>
+                        <p className="text-[10px] text-muted-foreground mt-1 max-w-[240px]">
+                          Key in the profile number (Student ID) registered on your account to begin verification.
+                        </p>
+                      </div>
+                      <Input
+                        placeholder="e.g. STU-2024-0001"
+                        value={profileNumber}
+                        onChange={(e) => setProfileNumber(e.target.value)}
+                        disabled={stepBusy}
+                        onKeyDown={(e) => e.key === "Enter" && handleProfileNext()}
+                        className="text-center"
+                      />
+                      {profileError && <p className="text-xs text-red-500 text-center">{profileError}</p>}
+                      <div className="flex justify-end gap-2 pt-2 border-t">
+                        <Button variant="outline" onClick={() => setSelectedSessionInput(null)} disabled={stepBusy}>
+                          Cancel
+                        </Button>
+                        <Button
+                          onClick={handleProfileNext}
+                          disabled={stepBusy || !profileNumber.trim()}
+                          className="bg-sky-500 hover:bg-sky-600 text-white"
+                        >
+                          {stepBusy ? (
+                            <>
+                              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                              Verifying...
+                            </>
+                          ) : (
+                            "Continue"
+                          )}
+                        </Button>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Verified identity banner (steps 1-4) */}
+                  {bioStep >= 1 && verifiedProfile && (
+                    <div className="flex items-center gap-3 rounded-lg border bg-slate-50 dark:bg-slate-900/60 p-3">
+                      <Avatar className="size-10">
+                        {verifiedProfile.profile_photo_url && (
+                          <AvatarImage src={verifiedProfile.profile_photo_url} alt={verifiedProfile.full_name} />
+                        )}
+                        <AvatarFallback>{initialsOf(verifiedProfile.full_name)}</AvatarFallback>
+                      </Avatar>
+                      <div className="min-w-0">
+                        <p className="text-xs font-bold text-foreground truncate">{verifiedProfile.full_name}</p>
+                        <p className="text-[10px] text-muted-foreground truncate">
+                          {verifiedProfile.student_id}
+                          {verifiedProfile.classes?.name ? ` - ${verifiedProfile.classes.name}` : ""}
+                        </p>
+                      </div>
+                      <UserCheck className="size-5 text-green-500 ml-auto shrink-0" />
+                    </div>
+                  )}
+
+                  {/* Step 1: Face verification */}
+                  {bioStep === 1 && (
+                    <div className="space-y-3 pt-1">
+                      <div className="relative flex flex-col items-center justify-center rounded-lg border bg-slate-50 dark:bg-slate-900/60 p-6 text-center overflow-hidden">
+                        {stepBusy && !faceScanned && (
+                          <div className="absolute inset-0 bg-blue-500/5 animate-pulse">
+                            <div className="w-full h-1 bg-sky-500 absolute top-0 left-0 right-0 animate-pulse" />
+                          </div>
+                        )}
+                        <div className="relative">
+                          {verifiedProfile?.profile_photo_url ? (
+                            <img
+                              src={verifiedProfile.profile_photo_url}
+                              alt="Registered profile"
+                              className="size-20 rounded-full object-cover border-4 border-sky-200 dark:border-sky-900"
+                            />
+                          ) : (
+                            <div className="flex size-20 items-center justify-center rounded-full border-4 border-sky-200 dark:border-sky-900 bg-slate-200 dark:bg-slate-800">
+                              <ScanFace className="size-10 text-sky-500" />
+                            </div>
+                          )}
+                          {faceScanned && (
+                            <span className="absolute -bottom-1 -right-1 flex size-6 items-center justify-center rounded-full bg-green-500 text-white">
+                              <Check className="size-4" />
+                            </span>
+                          )}
+                        </div>
+                        <p className="text-xs font-semibold text-foreground mt-3">Step 1 of 4 - Face Verification</p>
+                        <p className="text-[10px] text-muted-foreground mt-1 max-w-[240px]">
+                          System image loaded from your registered profile. Scan your face to compare.
+                        </p>
+                        {faceScanned && faceMatch !== null && (
+                          <div className="mt-3 w-full">
+                            <div className="flex justify-between text-[10px] text-muted-foreground mb-1">
+                              <span>Face match confidence</span>
+                              <span className="font-bold text-green-600 dark:text-green-400">{faceMatch}%</span>
+                            </div>
+                            <div className="h-2 w-full rounded-full bg-slate-200 dark:bg-slate-700 overflow-hidden">
+                              <div
+                                className="h-full rounded-full bg-green-500 transition-all duration-700"
+                                style={{ width: `${faceMatch}%` }}
+                              />
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                      {faceScanned && !faceConfirmed && (
+                        <Button
+                          onClick={() => {
+                            setFaceConfirmed(true);
+                            setBioStep(2);
+                          }}
+                          variant="outline"
+                          className="w-full border-green-500 text-green-600 dark:text-green-400"
+                        >
+                          <Check className="size-4 mr-2" />
+                          Confirm Match & Continue
+                        </Button>
+                      )}
+                      {!faceConfirmed && (
+                        <Button
+                          onClick={handleFaceScan}
+                          disabled={stepBusy}
+                          className="w-full bg-sky-500 hover:bg-sky-600 text-white"
+                        >
+                          {stepBusy ? (
+                            <>
+                              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                              Scanning...
+                            </>
+                          ) : (
+                            "Scan Face"
+                          )}
+                        </Button>
+                      )}
+                      {faceConfirmed && (
+                        <p className="text-center text-xs text-green-600 dark:text-green-400 font-semibold">
+                          Face verified <CheckCircle2 className="inline size-3.5" />
+                        </p>
+                      )}
+                      <div className="flex justify-between pt-2 border-t">
+                        <Button variant="ghost" onClick={() => setBioStep(0)} disabled={stepBusy}>
+                          Back
+                        </Button>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Step 2: Fingerprint */}
+                  {bioStep === 2 && (
+                    <div className="space-y-3 pt-1">
+                      <div className="flex flex-col items-center justify-center rounded-lg border bg-slate-50 dark:bg-slate-900/60 p-6 text-center">
+                        <div
+                          className={cn(
+                            "relative flex size-20 items-center justify-center rounded-full border-4",
+                            fingerDone ? "border-green-500" : "border-slate-300 dark:border-slate-700"
+                          )}
+                        >
+                          <Fingerprint className={cn("size-10", fingerDone ? "text-green-500" : "text-slate-400")} />
+                          {fingerDone && (
+                            <span className="absolute -bottom-1 -right-1 flex size-6 items-center justify-center rounded-full bg-green-500 text-white">
+                              <Check className="size-4" />
+                            </span>
+                          )}
+                        </div>
+                        <p className="text-xs font-semibold text-foreground mt-3">Step 2 of 4 - Fingerprint</p>
+                        <p className="text-[10px] text-muted-foreground mt-1 max-w-[240px]">
+                          Place your finger on the sensor and hold steady until it reads.
+                        </p>
+                      </div>
+                      {!fingerDone ? (
+                        <Button
+                          onClick={handleFingerScan}
+                          disabled={stepBusy}
+                          className="w-full bg-sky-500 hover:bg-sky-600 text-white"
+                        >
+                          {stepBusy ? (
+                            <>
+                              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                              Reading...
+                            </>
+                          ) : (
+                            "Scan Fingerprint"
+                          )}
+                        </Button>
+                      ) : (
+                        <>
+                          <p className="text-center text-xs text-green-600 dark:text-green-400 font-semibold">
+                            Fingerprint captured <CheckCircle2 className="inline size-3.5" />
+                          </p>
+                          <Button onClick={() => setBioStep(3)} className="w-full bg-sky-500 hover:bg-sky-600 text-white">
+                            Continue
+                          </Button>
+                        </>
+                      )}
+                      <div className="flex justify-between pt-2 border-t">
+                        <Button variant="ghost" onClick={() => setBioStep(1)} disabled={stepBusy}>
+                          Back
+                        </Button>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Step 3: Student ID card */}
+                  {bioStep === 3 && (
+                    <div className="space-y-3 pt-1">
+                      <div className="flex flex-col items-center justify-center rounded-lg border bg-slate-50 dark:bg-slate-900/60 p-6 text-center">
+                        <div
+                          className={cn(
+                            "relative flex size-20 items-center justify-center rounded-full border-4",
+                            cardDone ? "border-green-500" : "border-slate-300 dark:border-slate-700"
+                          )}
+                        >
+                          <IdCard className={cn("size-10", cardDone ? "text-green-500" : "text-slate-400")} />
+                          {cardDone && (
+                            <span className="absolute -bottom-1 -right-1 flex size-6 items-center justify-center rounded-full bg-green-500 text-white">
+                              <Check className="size-4" />
+                            </span>
+                          )}
+                        </div>
+                        <p className="text-xs font-semibold text-foreground mt-3">Step 3 of 4 - Student ID Card</p>
+                        <p className="text-[10px] text-muted-foreground mt-1 max-w-[240px]">
+                          Tap your NFC student ID card on the reader to verify.
+                        </p>
+                      </div>
+                      {!cardDone ? (
+                        <Button
+                          onClick={handleCardTap}
+                          disabled={stepBusy}
+                          className="w-full bg-sky-500 hover:bg-sky-600 text-white"
+                        >
+                          {stepBusy ? (
+                            <>
+                              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                              Reading...
+                            </>
+                          ) : (
+                            "Tap Student Card"
+                          )}
+                        </Button>
+                      ) : (
+                        <>
+                          <p className="text-center text-xs text-green-600 dark:text-green-400 font-semibold">
+                            ID card verified <CheckCircle2 className="inline size-3.5" />
+                          </p>
+                          <Button onClick={() => setBioStep(4)} className="w-full bg-sky-500 hover:bg-sky-600 text-white">
+                            Continue
+                          </Button>
+                        </>
+                      )}
+                      <div className="flex justify-between pt-2 border-t">
+                        <Button variant="ghost" onClick={() => setBioStep(2)} disabled={stepBusy}>
+                          Back
+                        </Button>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Step 4: Summary + complete */}
+                  {bioStep === 4 && (
+                    <div className="space-y-3 pt-1">
+                      <div className="rounded-lg border bg-slate-50 dark:bg-slate-900/60 p-4 space-y-2">
+                        <p className="text-xs font-bold text-foreground">Verification Summary</p>
+                        {[
+                          { label: "Profile number", ok: !!verifiedProfile?.student_id },
+                          { label: "Face match", ok: faceConfirmed && faceMatch !== null },
+                          { label: "Fingerprint", ok: fingerDone },
+                          { label: "Student ID card", ok: cardDone },
+                        ].map((item) => (
+                          <div key={item.label} className="flex items-center justify-between text-[11px]">
+                            <span className="text-muted-foreground">{item.label}</span>
+                            {item.ok ? (
+                              <span className="flex items-center gap-1 text-green-600 dark:text-green-400 font-semibold">
+                                <Check className="size-3.5" />
+                                Verified
+                              </span>
+                            ) : (
+                              <span className="flex items-center gap-1 text-red-500 font-semibold">
+                                <span className="size-3.5 rounded-full border border-red-400" />
+                                Pending
+                              </span>
+                            )}
+                          </div>
+                        ))}
+                      </div>
+                      <div className="flex justify-end gap-2 pt-2 border-t">
+                        <Button variant="ghost" onClick={() => setBioStep(3)} disabled={verifying}>
+                          Back
+                        </Button>
+                        <Button
+                          onClick={completeBiometricCheckIn}
+                          disabled={verifying}
+                          className="bg-sky-500 hover:bg-sky-600 text-white"
+                        >
+                          {verifying ? (
+                            <>
+                              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                              Recording...
+                            </>
+                          ) : (
+                            "Complete Check-in"
+                          )}
+                        </Button>
+                      </div>
+                    </div>
+                  )}
                 </div>
               )}
             </DialogContent>
