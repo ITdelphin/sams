@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, useMemo } from "react";
+import { useEffect, useState, useMemo, useRef } from "react";
 import { createClient } from "@/lib/supabase/client";
 import {
   Card,
@@ -50,6 +50,7 @@ import {
   CheckCircle2,
   Play,
   RotateCw,
+  Camera,
 } from "lucide-react";
 
 type AttendanceRecord = {
@@ -140,6 +141,60 @@ export default function StudentAttendancePage() {
   const [verifying, setVerifying] = useState(false);
   const [verificationStep, setVerificationStep] = useState<"idle" | "scanning" | "matched" | "success">("idle");
 
+  // Camera scanner state
+  const scannerInstanceRef = useRef<any>(null);
+  const scannerRef = useRef<HTMLDivElement>(null);
+  const [scannerActive, setScannerActive] = useState(false);
+  const [scannerError, setScannerError] = useState("");
+
+  async function stopScanner() {
+    setScannerActive(false);
+    setScannerError("");
+    if (scannerInstanceRef.current) {
+      try {
+        await scannerInstanceRef.current.stop();
+      } catch {
+        // already stopped
+      }
+      try {
+        scannerInstanceRef.current.clear();
+      } catch {
+        // already cleared
+      }
+      scannerInstanceRef.current = null;
+    }
+  }
+
+  async function startScanner() {
+    setScannerActive(true);
+    setScannerError("");
+    try {
+      const { Html5Qrcode } = await import("html5-qrcode");
+      const html5QrCode = new Html5Qrcode("qr-reader");
+      scannerInstanceRef.current = html5QrCode;
+      await html5QrCode.start(
+        { facingMode: "environment" },
+        { fps: 10, qrbox: { width: 220, height: 220 } },
+        (decodedText) => {
+          stopScanner();
+          setQrToken(decodedText);
+          performCheckIn(decodedText);
+        },
+        () => {
+          // ignore per-frame failures
+        }
+      );
+    } catch (e: any) {
+      setScannerActive(false);
+      scannerInstanceRef.current = null;
+      setScannerError(
+        e?.message && e.message.includes("Permission")
+          ? "Camera permission denied. Please allow camera access or paste the QR string instead."
+          : "Could not start the camera. Please paste the QR string instead."
+      );
+    }
+  }
+
   const supabase = createClient();
 
   // Listen to tab query param
@@ -217,6 +272,12 @@ export default function StudentAttendancePage() {
   }
 
   useEffect(() => {
+    return () => {
+      stopScanner();
+    };
+  }, []);
+
+  useEffect(() => {
     async function init() {
       setLoading(true);
       await loadRecords();
@@ -272,8 +333,14 @@ export default function StudentAttendancePage() {
     setVerificationStep("idle");
   };
 
-  const handleMarkQR = async () => {
-    if (!selectedSessionInput || !qrToken.trim()) {
+  const performCheckIn = async (token: string) => {
+    if (!selectedSessionInput) {
+      toast.error("Please enter the QR String.");
+      return;
+    }
+
+    const trimmed = token.trim();
+    if (!trimmed) {
       toast.error("Please enter the QR String.");
       return;
     }
@@ -309,7 +376,7 @@ export default function StudentAttendancePage() {
       return;
     }
 
-    if (session.qr_code !== qrToken.trim()) {
+    if (session.qr_code !== trimmed) {
       toast.error("Verification failed. The QR code does not match the active session.");
       setVerifying(false);
       setVerificationStep("idle");
@@ -352,6 +419,10 @@ export default function StudentAttendancePage() {
       setTimeout(() => setSelectedSessionInput(null), 1500);
     }
     setVerifying(false);
+  };
+
+  const handleMarkQR = async () => {
+    await performCheckIn(qrToken);
   };
 
   const handleMarkBiometric = async () => {
@@ -746,7 +817,7 @@ export default function StudentAttendancePage() {
           )}
 
           {/* Interactive Modal dialog simulator */}
-          <Dialog open={!!selectedSessionInput} onOpenChange={() => setSelectedSessionInput(null)}>
+          <Dialog open={!!selectedSessionInput} onOpenChange={() => { stopScanner(); setSelectedSessionInput(null); }}>
             <DialogContent className="sm:max-w-md">
               <DialogHeader>
                 <DialogTitle className="flex items-center gap-2">
@@ -765,9 +836,45 @@ export default function StudentAttendancePage() {
                     <QrCode className="size-12 text-sky-500 mb-2 animate-pulse" />
                     <p className="text-xs font-semibold text-foreground">Interactive QR Scanning Feed</p>
                     <p className="text-[10px] text-muted-foreground max-w-[220px] mt-1">
-                      Paste the dynamic token signature visible on your lecturer&apos;s active screen.
+                      Scan the dynamic token QR on your lecturer&apos;s screen, or paste it below.
                     </p>
                   </div>
+
+                  {!scannerActive && (
+                    <Button
+                      type="button"
+                      variant="outline"
+                      className="w-full"
+                      onClick={startScanner}
+                      disabled={verifying}
+                    >
+                      <Camera className="size-4 mr-2" />
+                      Scan with Camera
+                    </Button>
+                  )}
+
+                  {scannerActive && (
+                    <div className="space-y-2">
+                      <div
+                        ref={scannerRef}
+                        id="qr-reader"
+                        className="overflow-hidden rounded-lg border [&_video]:w-full"
+                      />
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        className="w-full text-xs"
+                        onClick={stopScanner}
+                        disabled={verifying}
+                      >
+                        Cancel Camera
+                      </Button>
+                    </div>
+                  )}
+
+                  {scannerError && (
+                    <p className="text-xs text-red-500 text-center">{scannerError}</p>
+                  )}
 
                   <div className="space-y-2">
                     <Input

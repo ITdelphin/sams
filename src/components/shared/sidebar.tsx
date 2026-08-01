@@ -24,6 +24,7 @@ import {
   Layers,
   CalendarClock,
   ListChecks,
+  History,
 } from "lucide-react";
 
 interface SidebarLink {
@@ -52,6 +53,7 @@ const iconMap: Record<string, LucideIcon> = {
   courses: BookOpen,
   classes: BookOpen,
   attendance: ClipboardList,
+  records: History,
   settings: Settings,
   audit: ScrollText,
   years: CalendarDays,

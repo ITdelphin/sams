@@ -65,7 +65,8 @@ const lecturerLinks = [
   { label: "Dashboard", href: "/lecturer", icon: "dashboard" },
   { label: "My Courses", href: "/lecturer/courses", icon: "courses" },
   { label: "Sessions", href: "/lecturer/sessions", icon: "sessions" },
-  { label: "Attendance", href: "/lecturer/attendance", icon: "attendance" },
+  { label: "Mark Attendance", href: "/lecturer/attendance/mark", icon: "attendance" },
+  { label: "Attendance Records", href: "/lecturer/attendance", icon: "records" },
   { label: "Profile", href: "/lecturer/profile", icon: "profile" },
 ];
 
