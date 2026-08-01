@@ -10,9 +10,11 @@ import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "@/components/ui/select";
+import { Textarea } from "@/components/ui/textarea";
+import { Separator } from "@/components/ui/separator";
 import { formatDate, getStatusColor } from "@/lib/utils";
 import { toast } from "sonner";
-import { Users, GraduationCap, AlertTriangle } from "lucide-react";
+import { Users, GraduationCap, AlertTriangle, Upload, Loader2, FileUp } from "lucide-react";
 
 interface Student {
   id: string;
@@ -50,10 +52,26 @@ export default function AdminStudentsPage() {
     faculty_id: "",
     account_status: "",
   });
+  const [importOpen, setImportOpen] = useState(false);
+  const [importText, setImportText] = useState("");
+  const [importing, setImporting] = useState(false);
+  const [importedCount, setImportedCount] = useState(0);
+  const [importResult, setImportResult] = useState<{
+    added: number;
+    skipped: number;
+  } | null>(null);
 
   useEffect(() => {
     loadData();
   }, []);
+
+  async function loadImportedCount() {
+    const supabase = createClient();
+    const { count } = await supabase
+      .from("imported_students")
+      .select("id", { count: "exact", head: true });
+    setImportedCount(count || 0);
+  }
 
   async function loadData() {
     const supabase = createClient();
@@ -66,6 +84,7 @@ export default function AdminStudentsPage() {
     setDepartments(deptsRes.data || []);
     setFaculties(facsRes.data || []);
     setLoading(false);
+    loadImportedCount();
   }
 
   const filtered = useMemo(() => {
@@ -142,6 +161,79 @@ export default function AdminStudentsPage() {
     }
   }
 
+  function parseImportRows(text: string): any[] {
+    const rows: any[] = [];
+    const lines = text
+      .split(/\r?\n/)
+      .map((l) => l.trim())
+      .filter(Boolean);
+
+    for (const line of lines) {
+      const cols = line
+        .split(",")
+        .map((c) => c.trim().replace(/^"|"$/g, ""));
+
+      if (cols.length < 2) continue;
+
+      const reg = cols[0];
+      const name = cols[1];
+      if (!reg || !name) continue;
+
+      rows.push({
+        registration_number: reg,
+        full_name: name,
+        email: cols[2] || null,
+        faculty: cols[3] || null,
+        department: cols[4] || null,
+        program: cols[5] || null,
+        academic_year: cols[6] || null,
+        semester: cols[7] || null,
+        class_name: cols[8] || null,
+      });
+    }
+    return rows;
+  }
+
+  async function handleImport() {
+    if (!importText.trim()) {
+      toast.error("Paste some student records first.");
+      return;
+    }
+
+    const rows = parseImportRows(importText);
+    if (rows.length === 0) {
+      toast.error("No valid rows found. Expected: registration_number,full_name,email,...");
+      return;
+    }
+
+    setImporting(true);
+    setImportResult(null);
+    const supabase = createClient();
+
+    let added = 0;
+    let skipped = 0;
+
+    for (const row of rows) {
+      const { error } = await supabase.from("imported_students").insert(row);
+      if (error) {
+        skipped += 1;
+      } else {
+        added += 1;
+      }
+    }
+
+    setImporting(false);
+    setImportResult({ added, skipped });
+    setImportText("");
+    loadImportedCount();
+
+    if (added > 0) {
+      toast.success(`${added} student record(s) imported.`);
+    } else {
+      toast.error("No records were imported (duplicates or invalid).");
+    }
+  }
+
   if (loading) {
     return (
       <div className="flex items-center justify-center py-20">
@@ -154,9 +246,18 @@ export default function AdminStudentsPage() {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <h1 className="text-2xl font-bold text-foreground">Students</h1>
+        <Button
+          onClick={() => {
+            setImportOpen(true);
+            setImportResult(null);
+          }}
+        >
+          <Upload className="mr-2 h-4 w-4" />
+          Import Students
+        </Button>
       </div>
 
-      <div className="grid grid-cols-3 gap-4">
+      <div className="grid grid-cols-4 gap-4">
         <Card>
           <CardContent className="p-4 flex items-center gap-3">
             <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary/10">
@@ -187,6 +288,17 @@ export default function AdminStudentsPage() {
             <div>
               <p className="text-xs text-muted-foreground">Suspended</p>
               <p className="text-2xl font-bold text-red-600">{suspendedCount}</p>
+            </div>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardContent className="p-4 flex items-center gap-3">
+            <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-sky-500/10">
+              <FileUp className="h-5 w-5 text-sky-600" />
+            </div>
+            <div>
+              <p className="text-xs text-muted-foreground">Imported Records</p>
+              <p className="text-2xl font-bold text-sky-600">{importedCount}</p>
             </div>
           </CardContent>
         </Card>
@@ -269,6 +381,64 @@ export default function AdminStudentsPage() {
           </Table>
         </CardContent>
       </Card>
+
+      <Dialog open={importOpen} onOpenChange={setImportOpen}>
+        <DialogContent className="max-w-lg">
+          <DialogHeader>
+            <DialogTitle>Import Student Records</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <p className="text-sm text-muted-foreground">
+              Paste student records in CSV format, one per line:
+            </p>
+            <div className="rounded-lg bg-muted p-3 font-mono text-xs leading-relaxed">
+              registration_number,full_name,email,faculty,department,program,academic_year,semester,class_name
+              <br />
+              <span className="text-muted-foreground">
+                e.g. 20240001,John Doe,john@uni.edu,Science,Physics,BCS,2026-2027,Semester 1,BCS Year 1 - Section A
+              </span>
+            </div>
+            <div className="space-y-2">
+              <Label>Records</Label>
+              <Textarea
+                rows={8}
+                value={importText}
+                onChange={(e) => setImportText(e.target.value)}
+                placeholder={"20240001,John Doe,john@uni.edu,Science,Physics,BCS,2026-2027,Semester 1,BCS Year 1 - Section A"}
+                disabled={importing}
+              />
+            </div>
+            {importResult && (
+              <div className="rounded-lg border border-sky-100 bg-sky-50 p-3 text-sm text-sky-700">
+                Import complete: {importResult.added} added, {importResult.skipped} skipped.
+              </div>
+            )}
+          </div>
+          <Separator />
+          <div className="flex justify-end gap-2 pt-2">
+            <Button
+              variant="outline"
+              onClick={() => {
+                setImportOpen(false);
+                setImportText("");
+                setImportResult(null);
+              }}
+            >
+              Close
+            </Button>
+            <Button onClick={handleImport} disabled={importing}>
+              {importing ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Importing...
+                </>
+              ) : (
+                "Import"
+              )}
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
 
       <Dialog open={!!editStudent} onOpenChange={() => setEditStudent(null)}>
         <DialogContent className="max-w-lg">

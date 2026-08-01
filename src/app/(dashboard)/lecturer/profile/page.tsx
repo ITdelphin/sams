@@ -11,6 +11,7 @@ import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { formatDate, getStatusColor, getRoleLabel } from "@/lib/utils";
 import { toast } from "sonner";
+import Link from "next/link";
 
 export default function LecturerProfilePage() {
   const [profile, setProfile] = useState<any>(null);
@@ -134,6 +135,23 @@ export default function LecturerProfilePage() {
                 <p className="text-sm">{(profile as any)?.faculties?.name || "Not assigned"}</p>
               </div>
             </div>
+          </CardContent>
+        </Card>
+
+        <Card className="lg:col-span-2">
+          <CardHeader className="flex flex-row items-center justify-between">
+            <CardTitle>Security</CardTitle>
+          </CardHeader>
+          <CardContent className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+            <div className="space-y-1">
+              <p className="text-sm font-medium">Password</p>
+              <p className="text-sm text-muted-foreground">
+                Change your account password for better security.
+              </p>
+            </div>
+            <Link href="/change-password">
+              <Button variant="outline" size="sm">Change Password</Button>
+            </Link>
           </CardContent>
         </Card>
       </div>

@@ -35,6 +35,7 @@ import {
 } from "@/components/ui/select";
 import { Separator } from "@/components/ui/separator";
 import { formatDate, getStatusColor } from "@/lib/utils";
+import { generateTempPassword } from "@/lib/security";
 import { toast } from "sonner";
 import {
   Search,
@@ -51,6 +52,9 @@ import {
   Mail,
   Loader2,
   Inbox,
+  Plus,
+  KeyRound,
+  Copy,
 } from "lucide-react";
 
 type Profile = {
@@ -109,6 +113,23 @@ export default function AdminLecturersPage() {
     account_status: "" as Profile["account_status"],
   });
   const [saving, setSaving] = useState(false);
+  const [addDialogOpen, setAddDialogOpen] = useState(false);
+  const [tempPasswordDialog, setTempPasswordDialog] = useState(false);
+  const [generatedPassword, setGeneratedPassword] = useState("");
+  const [faculties, setFaculties] = useState<{ id: string; name: string }[]>([]);
+  const [classes, setClasses] = useState<{ id: string; name: string }[]>([]);
+  const [courses, setCourses] = useState<{ id: string; name: string; code: string }[]>([]);
+  const [addForm, setAddForm] = useState({
+    staff_id: "",
+    full_name: "",
+    email: "",
+    phone_number: "",
+    faculty_id: "",
+    department_id: "",
+    office: "",
+    class_ids: [] as string[],
+    course_ids: [] as string[],
+  });
 
   const supabase = createClient();
 
@@ -131,14 +152,20 @@ export default function AdminLecturersPage() {
   }
 
   async function fetchDepartments() {
-    const { data } = await supabase
-      .from("departments")
-      .select("*")
-      .order("name");
+    const supabase = createClient();
+    const [deptRes, facRes, classRes, courseRes] = await Promise.all([
+      supabase.from("departments").select("*").order("name"),
+      supabase.from("faculties").select("id, name").order("name"),
+      supabase.from("classes").select("id, name").order("name"),
+      supabase.from("courses").select("id, name, code").order("name"),
+    ]);
 
-    if (data) {
-      setDepartments(data);
+    if (deptRes.data) {
+      setDepartments(deptRes.data);
     }
+    if (facRes.data) setFaculties(facRes.data);
+    if (classRes.data) setClasses(classRes.data);
+    if (courseRes.data) setCourses(courseRes.data);
   }
 
   useEffect(() => {
@@ -148,6 +175,115 @@ export default function AdminLecturersPage() {
     init();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  async function handleCreateLecturer() {
+    if (!addForm.staff_id.trim() || !addForm.full_name.trim() || !addForm.email.trim()) {
+      toast.error("Please fill in Staff ID, Full Name, and Email");
+      return;
+    }
+    if (!addForm.department_id) {
+      toast.error("Please select a department");
+      return;
+    }
+
+    setSaving(true);
+
+    const tempPassword = generateTempPassword();
+    const { data, error: authError } = await supabase.auth.signUp({
+      email: addForm.email.trim(),
+      password: tempPassword,
+      options: {
+        data: {
+          full_name: addForm.full_name.trim(),
+          role: "lecturer",
+        },
+      },
+    });
+
+    if (authError || !data.user) {
+      toast.error(authError?.message || "Failed to create lecturer account");
+      setSaving(false);
+      return;
+    }
+
+    const { error: profileError } = await supabase.from("profiles").insert({
+      id: data.user.id,
+      email: addForm.email.trim(),
+      full_name: addForm.full_name.trim(),
+      staff_id: addForm.staff_id.trim(),
+      phone_number: addForm.phone_number.trim() || null,
+      faculty_id: addForm.faculty_id || null,
+      department_id: addForm.department_id,
+      office: addForm.office.trim() || null,
+      role: "lecturer",
+      account_status: "approved",
+      must_change_password: true,
+    });
+
+    if (profileError) {
+      toast.error(profileError.message);
+      setSaving(false);
+      return;
+    }
+
+    if (addForm.course_ids.length > 0) {
+      await supabase
+        .from("courses")
+        .update({ lecturer_id: data.user.id })
+        .in("id", addForm.course_ids);
+    }
+
+    if (addForm.class_ids.length > 0) {
+      for (const classId of addForm.class_ids) {
+        for (const courseId of addForm.course_ids) {
+          await supabase.from("course_assignments").upsert(
+            { class_id: classId, course_id: courseId, lecturer_id: data.user.id },
+            { onConflict: "class_id,course_id" }
+          );
+        }
+      }
+    }
+
+    try {
+      await supabase.from("audit_logs").insert({
+        user_id: data.user.id,
+        action: "create_lecturer",
+        entity_type: "profiles",
+        entity_id: data.user.id,
+        new_value: { note: `Lecturer created with staff id ${addForm.staff_id.trim()}` },
+      });
+    } catch {
+      // non-blocking
+    }
+
+    setGeneratedPassword(tempPassword);
+    setTempPasswordDialog(true);
+    setAddDialogOpen(false);
+    setAddForm({
+      staff_id: "",
+      full_name: "",
+      email: "",
+      phone_number: "",
+      faculty_id: "",
+      department_id: "",
+      office: "",
+      class_ids: [],
+      course_ids: [],
+    });
+    setSaving(false);
+    toast.success("Lecturer account created");
+    fetchLecturers();
+  }
+
+  function toggleArrayItem(field: "class_ids" | "course_ids", id: string) {
+    setAddForm((prev) => {
+      const current = prev[field];
+      const next = current.includes(id)
+        ? current.filter((x) => x !== id)
+        : [...current, id];
+      return { ...prev, [field]: next };
+    });
+  }
 
   async function updateStatus(
     lecturerId: string,
@@ -278,6 +414,28 @@ export default function AdminLecturersPage() {
         <p className="text-sm text-muted-foreground">
           Manage lecturer accounts, approvals, and permissions.
         </p>
+      </div>
+
+      <div className="flex justify-end">
+        <Button
+          onClick={() => {
+            setAddForm({
+              staff_id: "",
+              full_name: "",
+              email: "",
+              phone_number: "",
+              faculty_id: "",
+              department_id: "",
+              office: "",
+              class_ids: [],
+              course_ids: [],
+            });
+            setAddDialogOpen(true);
+          }}
+        >
+          <Plus className="size-4" />
+          Add Lecturer
+        </Button>
       </div>
 
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
@@ -518,6 +676,238 @@ export default function AdminLecturersPage() {
           )}
         </CardContent>
       </Card>
+
+      <Dialog open={addDialogOpen} onOpenChange={setAddDialogOpen}>
+        <DialogContent className="sm:max-w-lg">
+          <DialogHeader>
+            <DialogTitle>Add Lecturer</DialogTitle>
+          </DialogHeader>
+          <div className="max-h-[60vh] space-y-4 overflow-y-auto py-2 pr-1">
+            <div className="space-y-2">
+              <Label htmlFor="add-staff">Staff ID *</Label>
+              <Input
+                id="add-staff"
+                value={addForm.staff_id}
+                onChange={(e) =>
+                  setAddForm((prev) => ({ ...prev, staff_id: e.target.value }))
+                }
+                placeholder="e.g. LEC-1001"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="add-name">Full Name *</Label>
+              <div className="relative">
+                <User className="absolute left-2.5 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
+                <Input
+                  id="add-name"
+                  value={addForm.full_name}
+                  onChange={(e) =>
+                    setAddForm((prev) => ({ ...prev, full_name: e.target.value }))
+                  }
+                  className="pl-8"
+                  placeholder="Enter full name"
+                />
+              </div>
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="add-email">Email *</Label>
+              <div className="relative">
+                <Mail className="absolute left-2.5 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
+                <Input
+                  id="add-email"
+                  type="email"
+                  value={addForm.email}
+                  onChange={(e) =>
+                    setAddForm((prev) => ({ ...prev, email: e.target.value }))
+                  }
+                  className="pl-8"
+                  placeholder="Enter email address"
+                />
+              </div>
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="add-phone">Phone Number</Label>
+              <Input
+                id="add-phone"
+                value={addForm.phone_number}
+                onChange={(e) =>
+                  setAddForm((prev) => ({ ...prev, phone_number: e.target.value }))
+                }
+                placeholder="Enter phone number"
+              />
+            </div>
+            <div className="grid grid-cols-2 gap-3">
+              <div className="space-y-2">
+                <Label>Faculty</Label>
+                <Select
+                  value={addForm.faculty_id}
+                  onValueChange={(value) =>
+                    setAddForm((prev) => ({
+                      ...prev,
+                      faculty_id: value ?? "",
+                      department_id: "",
+                    }))
+                  }
+                >
+                  <SelectTrigger className="w-full">
+                    <SelectValue placeholder="Select faculty" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {faculties.map((f) => (
+                      <SelectItem key={f.id} value={f.id}>
+                        {f.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="space-y-2">
+                <Label>Department *</Label>
+                <Select
+                  value={addForm.department_id}
+                  onValueChange={(value) =>
+                    setAddForm((prev) => ({
+                      ...prev,
+                      department_id: value ?? "",
+                    }))
+                  }
+                  disabled={!addForm.faculty_id}
+                >
+                  <SelectTrigger className="w-full">
+                    <SelectValue
+                      placeholder={
+                        addForm.faculty_id
+                          ? "Select department"
+                          : "Select faculty first"
+                      }
+                    />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {departments
+                      .filter((d) => d.faculty_id === addForm.faculty_id)
+                      .map((dept) => (
+                        <SelectItem key={dept.id} value={dept.id}>
+                          {dept.name}
+                        </SelectItem>
+                      ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="add-office">Office</Label>
+              <Input
+                id="add-office"
+                value={addForm.office}
+                onChange={(e) =>
+                  setAddForm((prev) => ({ ...prev, office: e.target.value }))
+                }
+                placeholder="e.g. Office 205, Science Building"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label>Assigned Courses</Label>
+              <div className="max-h-28 space-y-1 overflow-y-auto rounded-lg border p-2">
+                {courses.length === 0 && (
+                  <p className="px-2 py-1 text-xs text-muted-foreground">
+                    No courses available
+                  </p>
+                )}
+                {courses.map((course) => (
+                  <label
+                    key={course.id}
+                    className="flex cursor-pointer items-center gap-2 rounded px-2 py-1 text-sm hover:bg-muted"
+                  >
+                    <input
+                      type="checkbox"
+                      checked={addForm.course_ids.includes(course.id)}
+                      onChange={() => toggleArrayItem("course_ids", course.id)}
+                      className="size-4 rounded border-slate-300 text-sky-600 accent-sky-600"
+                    />
+                    {course.name} ({course.code})
+                  </label>
+                ))}
+              </div>
+            </div>
+            <div className="space-y-2">
+              <Label>Assigned Classes</Label>
+              <div className="max-h-28 space-y-1 overflow-y-auto rounded-lg border p-2">
+                {classes.length === 0 && (
+                  <p className="px-2 py-1 text-xs text-muted-foreground">
+                    No classes available
+                  </p>
+                )}
+                {classes.map((cls) => (
+                  <label
+                    key={cls.id}
+                    className="flex cursor-pointer items-center gap-2 rounded px-2 py-1 text-sm hover:bg-muted"
+                  >
+                    <input
+                      type="checkbox"
+                      checked={addForm.class_ids.includes(cls.id)}
+                      onChange={() => toggleArrayItem("class_ids", cls.id)}
+                      className="size-4 rounded border-slate-300 text-sky-600 accent-sky-600"
+                    />
+                    {cls.name}
+                  </label>
+                ))}
+              </div>
+            </div>
+          </div>
+          <Separator />
+          <div className="flex justify-end gap-2 pt-2">
+            <Button variant="outline" onClick={() => setAddDialogOpen(false)}>
+              Cancel
+            </Button>
+            <Button onClick={handleCreateLecturer} disabled={saving}>
+              {saving ? (
+                <>
+                  <Loader2 className="size-3.5 animate-spin" />
+                  Creating...
+                </>
+              ) : (
+                "Create Lecturer"
+              )}
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={tempPasswordDialog} onOpenChange={setTempPasswordDialog}>
+        <DialogContent className="sm:max-w-sm">
+          <DialogHeader>
+            <DialogTitle>Temporary Password</DialogTitle>
+          </DialogHeader>
+          <p className="text-sm text-muted-foreground">
+            The lecturer must use this temporary password on their first login.
+            They will be required to change it before accessing the dashboard.
+            In production, this is delivered by email.
+          </p>
+          <div className="flex items-center justify-between gap-2 rounded-lg border bg-muted p-3">
+            <code className="text-sm font-semibold">{generatedPassword}</code>
+            <Button
+              variant="outline"
+              size="icon-sm"
+              onClick={() => {
+                navigator.clipboard?.writeText(generatedPassword);
+                toast.success("Copied to clipboard");
+              }}
+            >
+              <Copy className="size-3.5" />
+            </Button>
+          </div>
+          <Separator />
+          <div className="flex justify-end gap-2 pt-2">
+            <Button
+              variant="outline"
+              onClick={() => setTempPasswordDialog(false)}
+            >
+              <KeyRound className="size-3.5" />
+              Done
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
 
       <Dialog open={editDialogOpen} onOpenChange={setEditDialogOpen}>
         <DialogContent className="sm:max-w-md">

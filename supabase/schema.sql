@@ -55,6 +55,19 @@ CREATE TABLE IF NOT EXISTS profiles (
 -- Backfill program_id for existing tables if missing
 ALTER TABLE profiles ADD COLUMN IF NOT EXISTS program_id UUID REFERENCES programs(id) ON DELETE SET NULL;
 
+-- Authentication & personal columns (backfill-safe)
+ALTER TABLE profiles ADD COLUMN IF NOT EXISTS gender TEXT CHECK (gender IN ('male', 'female', 'other'));
+ALTER TABLE profiles ADD COLUMN IF NOT EXISTS date_of_birth DATE;
+ALTER TABLE profiles ADD COLUMN IF NOT EXISTS staff_id TEXT UNIQUE;
+ALTER TABLE profiles ADD COLUMN IF NOT EXISTS office TEXT;
+ALTER TABLE profiles ADD COLUMN IF NOT EXISTS class_id UUID REFERENCES classes(id) ON DELETE SET NULL;
+ALTER TABLE profiles ADD COLUMN IF NOT EXISTS must_change_password BOOLEAN DEFAULT false;
+ALTER TABLE profiles ADD COLUMN IF NOT EXISTS failed_login_attempts INTEGER DEFAULT 0;
+ALTER TABLE profiles ADD COLUMN IF NOT EXISTS locked_until TIMESTAMPTZ;
+ALTER TABLE profiles ADD COLUMN IF NOT EXISTS last_login_at TIMESTAMPTZ;
+ALTER TABLE profiles ADD COLUMN IF NOT EXISTS first_name TEXT;
+ALTER TABLE profiles ADD COLUMN IF NOT EXISTS last_name TEXT;
+
 -- Academic Years
 CREATE TABLE IF NOT EXISTS academic_years (
   id UUID DEFAULT uuid_generate_v4() PRIMARY KEY,
@@ -137,6 +150,21 @@ CREATE TABLE IF NOT EXISTS course_enrollments (
   UNIQUE(student_id, course_id)
 );
 
+-- Imported Student Records (NEW - source of truth for validating self-registration)
+CREATE TABLE IF NOT EXISTS imported_students (
+  id UUID DEFAULT uuid_generate_v4() PRIMARY KEY,
+  registration_number TEXT NOT NULL UNIQUE,
+  full_name TEXT NOT NULL,
+  email TEXT,
+  faculty TEXT,
+  department TEXT,
+  program TEXT,
+  academic_year TEXT,
+  semester TEXT,
+  class_name TEXT,
+  imported_at TIMESTAMPTZ DEFAULT NOW()
+);
+
 -- Attendance Sessions
 CREATE TABLE IF NOT EXISTS attendance_sessions (
   id UUID DEFAULT uuid_generate_v4() PRIMARY KEY,
@@ -204,6 +232,9 @@ CREATE INDEX IF NOT EXISTS idx_profiles_status ON profiles(account_status);
 CREATE INDEX IF NOT EXISTS idx_profiles_department ON profiles(department_id);
 CREATE INDEX IF NOT EXISTS idx_profiles_faculty ON profiles(faculty_id);
 CREATE INDEX IF NOT EXISTS idx_profiles_program ON profiles(program_id);
+CREATE INDEX IF NOT EXISTS idx_profiles_class ON profiles(class_id);
+CREATE INDEX IF NOT EXISTS idx_profiles_staff ON profiles(staff_id);
+CREATE INDEX IF NOT EXISTS idx_imported_students_reg ON imported_students(registration_number);
 CREATE INDEX IF NOT EXISTS idx_programs_faculty ON programs(faculty_id);
 CREATE INDEX IF NOT EXISTS idx_programs_department ON programs(department_id);
 CREATE INDEX IF NOT EXISTS idx_courses_department ON courses(department_id);
@@ -238,6 +269,7 @@ ALTER TABLE classes ENABLE ROW LEVEL SECURITY;
 ALTER TABLE course_assignments ENABLE ROW LEVEL SECURITY;
 ALTER TABLE timetable ENABLE ROW LEVEL SECURITY;
 ALTER TABLE course_enrollments ENABLE ROW LEVEL SECURITY;
+ALTER TABLE imported_students ENABLE ROW LEVEL SECURITY;
 ALTER TABLE attendance_sessions ENABLE ROW LEVEL SECURITY;
 ALTER TABLE attendance_records ENABLE ROW LEVEL SECURITY;
 ALTER TABLE notifications ENABLE ROW LEVEL SECURITY;
@@ -306,6 +338,12 @@ CREATE POLICY "Admins can manage timetable" ON timetable FOR ALL USING (
 
 -- Enrollment policies
 CREATE POLICY "Students can view own enrollments" ON course_enrollments FOR SELECT USING (student_id = auth.uid());
+
+-- Imported students policies
+CREATE POLICY "Anyone can view imported students" ON imported_students FOR SELECT USING (true);
+CREATE POLICY "Admins can manage imported students" ON imported_students FOR ALL USING (
+  EXISTS (SELECT 1 FROM profiles WHERE id = auth.uid() AND role = 'super_admin')
+);
 CREATE POLICY "Admins can manage enrollments" ON course_enrollments FOR ALL USING (
   EXISTS (SELECT 1 FROM profiles WHERE id = auth.uid() AND role = 'super_admin')
 );

@@ -92,17 +92,54 @@ export default function LoginPage() {
     if (authError) {
       setError("Invalid email or password. Please try again.");
       setLoading(false);
+
+      const { data: lockedProfile } = await supabase
+        .from("profiles")
+        .select("id, failed_login_attempts")
+        .eq("email", email.trim())
+        .maybeSingle();
+
+      if (lockedProfile) {
+        const attempts = (lockedProfile.failed_login_attempts || 0) + 1;
+        if (attempts >= 5) {
+          await supabase.from("profiles").update({
+            failed_login_attempts: 0,
+            locked_until: new Date(Date.now() + 15 * 60 * 1000).toISOString(),
+          }).eq("id", lockedProfile.id);
+          setError(
+            "Too many failed attempts. Your account is locked for 15 minutes."
+          );
+        } else {
+          await supabase.from("profiles").update({
+            failed_login_attempts: attempts,
+          }).eq("id", lockedProfile.id);
+        }
+      }
       return;
     }
 
     const { data: profile, error: profileError } = await supabase
       .from("profiles")
-      .select("role, account_status")
+      .select(
+        "role, account_status, must_change_password, locked_until, failed_login_attempts"
+      )
       .eq("id", data.user.id)
       .single();
 
     if (profileError || !profile) {
       setError("Profile not found. Please contact administrator.");
+      setLoading(false);
+      return;
+    }
+
+    if (
+      profile.locked_until &&
+      new Date(profile.locked_until).getTime() > Date.now()
+    ) {
+      await supabase.auth.signOut();
+      setError(
+        "Your account is temporarily locked. Please try again later."
+      );
       setLoading(false);
       return;
     }
@@ -115,6 +152,33 @@ export default function LoginPage() {
 
     if (profile.account_status === "suspended" || profile.account_status === "rejected" || profile.account_status === "inactive") {
       setError(`Your account has been ${profile.account_status}. Please contact the administrator.`);
+      setLoading(false);
+      return;
+    }
+
+    await supabase
+      .from("profiles")
+      .update({
+        failed_login_attempts: 0,
+        locked_until: null,
+        last_login_at: new Date().toISOString(),
+      })
+      .eq("id", data.user.id);
+
+    try {
+      await supabase.from("audit_logs").insert({
+        user_id: data.user.id,
+        action: "login",
+        entity_type: "auth",
+        entity_id: data.user.id,
+      });
+    } catch {
+      // non-blocking
+    }
+
+    if (profile.must_change_password) {
+      toast.info("Welcome! For your security, please create a new password before continuing.");
+      router.push("/change-password");
       setLoading(false);
       return;
     }

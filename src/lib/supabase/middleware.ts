@@ -35,8 +35,17 @@ export async function updateSession(request: NextRequest) {
 
   const pathname = request.nextUrl.pathname;
 
-  const publicPaths = ["/login", "/register", "/verify-email", "/"];
+  const publicPaths = [
+    "/login",
+    "/register",
+    "/verify-email",
+    "/forgot-password",
+    "/reset-password",
+    "/",
+  ];
+  const authOnlyPaths = ["/change-password"];
   const isPublicPath = publicPaths.some((p) => pathname === p);
+  const isAuthOnlyPath = authOnlyPaths.some((p) => pathname === p);
 
   if (!user && !isPublicPath) {
     const url = request.nextUrl.clone();
@@ -44,37 +53,60 @@ export async function updateSession(request: NextRequest) {
     return NextResponse.redirect(url);
   }
 
-  if (user && isPublicPath && pathname !== "/") {
-    try {
-      const { data: profile } = await supabase
-        .from("profiles")
-        .select("role, account_status")
-        .eq("id", user.id)
-        .single();
+  if (user) {
+    const { data: profile } = await supabase
+      .from("profiles")
+      .select("role, account_status, must_change_password")
+      .eq("id", user.id)
+      .single();
 
+    if (isPublicPath && pathname !== "/") {
       if (profile) {
         const url = request.nextUrl.clone();
-        switch (profile.role) {
-          case "super_admin":
-            url.pathname = "/admin";
-            break;
-          case "lecturer":
-            if (profile.account_status === "pending") {
-              url.pathname = "/pending";
-            } else {
-              url.pathname = "/lecturer";
-            }
-            break;
-          case "student":
-            url.pathname = "/student";
-            break;
-          default:
-            url.pathname = "/login";
+        if (profile.must_change_password) {
+          url.pathname = "/change-password";
+        } else {
+          switch (profile.role) {
+            case "super_admin":
+              url.pathname = "/admin";
+              break;
+            case "lecturer":
+              if (profile.account_status === "pending") {
+                url.pathname = "/pending";
+              } else {
+                url.pathname = "/lecturer";
+              }
+              break;
+            case "student":
+              url.pathname = "/student";
+              break;
+            default:
+              url.pathname = "/login";
+          }
         }
         return NextResponse.redirect(url);
       }
-    } catch {
-      // Profile lookup failed, let user through
+    }
+
+    if (isAuthOnlyPath && !profile?.must_change_password) {
+      const url = request.nextUrl.clone();
+      switch (profile?.role) {
+        case "super_admin":
+          url.pathname = "/admin";
+          break;
+        case "lecturer":
+          url.pathname = "/lecturer";
+          break;
+        default:
+          url.pathname = "/student";
+      }
+      return NextResponse.redirect(url);
+    }
+
+    if (!isAuthOnlyPath && profile?.must_change_password) {
+      const url = request.nextUrl.clone();
+      url.pathname = "/change-password";
+      return NextResponse.redirect(url);
     }
   }
 

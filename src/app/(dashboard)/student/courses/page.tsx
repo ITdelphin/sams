@@ -22,9 +22,10 @@ import {
   Inbox,
   GraduationCap,
   Clock,
+  Users,
 } from "lucide-react";
 
-type EnrolledCourse = {
+type AssignedCourse = {
   id: string;
   name: string;
   code: string;
@@ -32,16 +33,17 @@ type EnrolledCourse = {
   department_id: string;
   lecturer_id: string | null;
   departments?: { name: string; code: string } | null;
-  enrollment_id: string;
-  enrolled_at: string;
+  assignment_id: string;
+  assigned_at: string;
   total_sessions: number;
   present_count: number;
   late_count: number;
 };
 
 export default function StudentCoursesPage() {
-  const [courses, setCourses] = useState<EnrolledCourse[]>([]);
+  const [courses, setCourses] = useState<AssignedCourse[]>([]);
   const [loading, setLoading] = useState(true);
+  const [className, setClassName] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
 
   const supabase = createClient();
@@ -58,22 +60,41 @@ export default function StudentCoursesPage() {
 
       const studentId = authData.user.id;
 
-      const { data: enrollments, error: enrollError } = await supabase
-        .from("course_enrollments")
-        .select("id, course_id, enrolled_at, courses(id, name, code, credits, department_id, lecturer_id, departments(name, code))")
-        .eq("student_id", studentId)
-        .order("enrolled_at", { ascending: false });
+      const { data: profile, error: profileError } = await supabase
+        .from("profiles")
+        .select("id, class_id, classes(name)")
+        .eq("id", studentId)
+        .single();
 
-      if (enrollError) {
-        toast.error("Failed to load enrolled courses");
+      if (profileError) {
+        toast.error("Failed to load profile");
         setLoading(false);
         return;
       }
 
-      const enrollmentList = (enrollments || []) as {
+      if (!profile?.class_id) {
+        setLoading(false);
+        return;
+      }
+
+      setClassName(profile.classes?.name || null);
+
+      const { data: assignments, error: assignError } = await supabase
+        .from("course_assignments")
+        .select("id, course_id, created_at, courses(id, name, code, credits, department_id, lecturer_id, departments(name, code))")
+        .eq("class_id", profile.class_id)
+        .order("created_at", { ascending: false });
+
+      if (assignError) {
+        toast.error("Failed to load assigned courses");
+        setLoading(false);
+        return;
+      }
+
+      const assignmentList = (assignments || []) as {
         id: string;
         course_id: string;
-        enrolled_at: string;
+        created_at: string;
         courses?: {
           id: string;
           name: string;
@@ -85,8 +106,8 @@ export default function StudentCoursesPage() {
         } | null;
       }[];
 
-      const courseIds = enrollmentList
-        .map((e) => e.courses?.id)
+      const courseIds = assignmentList
+        .map((a) => a.courses?.id)
         .filter((id): id is string => !!id);
 
       let sessionMap: Record<string, number> = {};
@@ -131,10 +152,10 @@ export default function StudentCoursesPage() {
         }
       }
 
-      const result: EnrolledCourse[] = enrollmentList
-        .filter((e) => e.courses)
-        .map((e) => {
-          const course = e.courses!;
+      const result: AssignedCourse[] = assignmentList
+        .filter((a) => a.courses)
+        .map((a) => {
+          const course = a.courses!;
           return {
             id: course.id,
             name: course.name,
@@ -143,8 +164,8 @@ export default function StudentCoursesPage() {
             department_id: course.department_id,
             lecturer_id: course.lecturer_id,
             departments: course.departments,
-            enrollment_id: e.id,
-            enrolled_at: e.enrolled_at,
+            assignment_id: a.id,
+            assigned_at: a.created_at,
             total_sessions: sessionMap[course.id] || 0,
             present_count: presentMap[course.id] || 0,
             late_count: lateMap[course.id] || 0,
@@ -204,9 +225,18 @@ export default function StudentCoursesPage() {
       <div>
         <h1 className="text-2xl font-bold tracking-tight">My Courses</h1>
         <p className="text-sm text-muted-foreground">
-          View your enrolled courses and attendance progress.
+          Courses assigned to your class and attendance progress.
         </p>
       </div>
+
+      {className && (
+        <div className="flex items-center gap-2 text-sm text-muted-foreground">
+          <Users className="size-4" />
+          <span>
+            Class: <span className="font-medium text-foreground">{className}</span>
+          </span>
+        </div>
+      )}
 
       <div className="grid gap-4 sm:grid-cols-3">
         <Card>
@@ -216,7 +246,7 @@ export default function StudentCoursesPage() {
             </div>
             <div>
               <p className="text-2xl font-bold">{stats.totalCourses}</p>
-              <p className="text-xs text-muted-foreground">Enrolled Courses</p>
+              <p className="text-xs text-muted-foreground">Assigned Courses</p>
             </div>
           </CardContent>
         </Card>
@@ -263,7 +293,9 @@ export default function StudentCoursesPage() {
               <p className="text-xs text-muted-foreground">
                 {searchQuery
                   ? "Try adjusting your search query"
-                  : "You are not enrolled in any courses yet"}
+                  : className
+                    ? "No courses have been assigned to your class yet"
+                    : "You have not been assigned to a class yet"}
               </p>
             </div>
           </CardContent>

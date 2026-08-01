@@ -446,6 +446,29 @@ export default function StudentProfilePage() {
               </div>
             </CardContent>
           </Card>
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Shield className="size-4" />
+                Security
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+                <div className="space-y-1">
+                  <p className="text-sm font-medium">Password</p>
+                  <p className="text-sm text-muted-foreground">
+                    Change your account password for better security.
+                  </p>
+                </div>
+                <Link href="/change-password">
+                  <Button variant="outline" size="sm">
+                    Change Password
+                  </Button>
+                </Link>
+              </div>
+            </CardContent>
+          </Card>
         </div>
       </div>
     </div>
