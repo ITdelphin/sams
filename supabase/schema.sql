@@ -1,5 +1,7 @@
 -- SAMS Database Schema
 -- Smart Attendance Management System
+-- Enterprise MVP v2
+-- Hierarchy: Faculty -> Department -> Program -> Academic Year -> Semester -> Class/Section
 
 -- Enable UUID extension
 CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
@@ -21,6 +23,17 @@ CREATE TABLE IF NOT EXISTS departments (
   created_at TIMESTAMPTZ DEFAULT NOW()
 );
 
+-- Programs (NEW - program layer in the hierarchy)
+CREATE TABLE IF NOT EXISTS programs (
+  id UUID DEFAULT uuid_generate_v4() PRIMARY KEY,
+  name TEXT NOT NULL,
+  code TEXT NOT NULL UNIQUE,
+  faculty_id UUID REFERENCES faculties(id) ON DELETE CASCADE,
+  department_id UUID REFERENCES departments(id) ON DELETE CASCADE,
+  duration_years INTEGER DEFAULT 3,
+  created_at TIMESTAMPTZ DEFAULT NOW()
+);
+
 -- Profiles (extends Supabase auth.users)
 CREATE TABLE IF NOT EXISTS profiles (
   id UUID REFERENCES auth.users(id) ON DELETE CASCADE PRIMARY KEY,
@@ -33,10 +46,14 @@ CREATE TABLE IF NOT EXISTS profiles (
   account_status TEXT NOT NULL DEFAULT 'pending' CHECK (account_status IN ('pending', 'approved', 'suspended', 'inactive', 'rejected', 'graduated')),
   department_id UUID REFERENCES departments(id) ON DELETE SET NULL,
   faculty_id UUID REFERENCES faculties(id) ON DELETE SET NULL,
+  program_id UUID REFERENCES programs(id) ON DELETE SET NULL,
   profile_photo_url TEXT,
   created_at TIMESTAMPTZ DEFAULT NOW(),
   updated_at TIMESTAMPTZ DEFAULT NOW()
 );
+
+-- Backfill program_id for existing tables if missing
+ALTER TABLE profiles ADD COLUMN IF NOT EXISTS program_id UUID REFERENCES programs(id) ON DELETE SET NULL;
 
 -- Academic Years
 CREATE TABLE IF NOT EXISTS academic_years (
@@ -70,12 +87,43 @@ CREATE TABLE IF NOT EXISTS courses (
   created_at TIMESTAMPTZ DEFAULT NOW()
 );
 
--- Classes
+-- Classes (restructured: program-based with year/semester/section)
+DROP TABLE IF EXISTS classes CASCADE;
 CREATE TABLE IF NOT EXISTS classes (
   id UUID DEFAULT uuid_generate_v4() PRIMARY KEY,
   name TEXT NOT NULL,
+  faculty_id UUID REFERENCES faculties(id) ON DELETE CASCADE,
+  department_id UUID REFERENCES departments(id) ON DELETE CASCADE,
+  program_id UUID REFERENCES programs(id) ON DELETE CASCADE,
+  academic_year_id UUID REFERENCES academic_years(id) ON DELETE SET NULL,
+  semester_id UUID REFERENCES semesters(id) ON DELETE SET NULL,
+  year INTEGER NOT NULL DEFAULT 1,
+  section TEXT NOT NULL DEFAULT 'A',
+  room TEXT,
+  capacity INTEGER DEFAULT 50,
+  created_at TIMESTAMPTZ DEFAULT NOW()
+);
+CREATE UNIQUE INDEX IF NOT EXISTS idx_classes_unique_section
+  ON classes(program_id, academic_year_id, semester_id, year, section);
+
+-- Course Assignments (NEW - links courses + lecturers to a class)
+CREATE TABLE IF NOT EXISTS course_assignments (
+  id UUID DEFAULT uuid_generate_v4() PRIMARY KEY,
+  class_id UUID REFERENCES classes(id) ON DELETE CASCADE,
   course_id UUID REFERENCES courses(id) ON DELETE CASCADE,
-  schedule TEXT,
+  lecturer_id UUID REFERENCES profiles(id) ON DELETE SET NULL,
+  created_at TIMESTAMPTZ DEFAULT NOW(),
+  UNIQUE(class_id, course_id)
+);
+
+-- Timetable (NEW - weekly schedule per class)
+CREATE TABLE IF NOT EXISTS timetable (
+  id UUID DEFAULT uuid_generate_v4() PRIMARY KEY,
+  class_id UUID REFERENCES classes(id) ON DELETE CASCADE,
+  course_id UUID REFERENCES courses(id) ON DELETE CASCADE,
+  day_of_week INTEGER NOT NULL CHECK (day_of_week BETWEEN 1 AND 7),
+  start_time TIME NOT NULL,
+  end_time TIME NOT NULL,
   room TEXT,
   created_at TIMESTAMPTZ DEFAULT NOW()
 );
@@ -155,9 +203,19 @@ CREATE INDEX IF NOT EXISTS idx_profiles_role ON profiles(role);
 CREATE INDEX IF NOT EXISTS idx_profiles_status ON profiles(account_status);
 CREATE INDEX IF NOT EXISTS idx_profiles_department ON profiles(department_id);
 CREATE INDEX IF NOT EXISTS idx_profiles_faculty ON profiles(faculty_id);
+CREATE INDEX IF NOT EXISTS idx_profiles_program ON profiles(program_id);
+CREATE INDEX IF NOT EXISTS idx_programs_faculty ON programs(faculty_id);
+CREATE INDEX IF NOT EXISTS idx_programs_department ON programs(department_id);
 CREATE INDEX IF NOT EXISTS idx_courses_department ON courses(department_id);
 CREATE INDEX IF NOT EXISTS idx_courses_lecturer ON courses(lecturer_id);
-CREATE INDEX IF NOT EXISTS idx_classes_course ON classes(course_id);
+CREATE INDEX IF NOT EXISTS idx_classes_program ON classes(program_id);
+CREATE INDEX IF NOT EXISTS idx_classes_academic_year ON classes(academic_year_id);
+CREATE INDEX IF NOT EXISTS idx_classes_semester ON classes(semester_id);
+CREATE INDEX IF NOT EXISTS idx_course_assignments_class ON course_assignments(class_id);
+CREATE INDEX IF NOT EXISTS idx_course_assignments_course ON course_assignments(course_id);
+CREATE INDEX IF NOT EXISTS idx_course_assignments_lecturer ON course_assignments(lecturer_id);
+CREATE INDEX IF NOT EXISTS idx_timetable_class ON timetable(class_id);
+CREATE INDEX IF NOT EXISTS idx_timetable_course ON timetable(course_id);
 CREATE INDEX IF NOT EXISTS idx_enrollments_student ON course_enrollments(student_id);
 CREATE INDEX IF NOT EXISTS idx_enrollments_course ON course_enrollments(course_id);
 CREATE INDEX IF NOT EXISTS idx_sessions_course ON attendance_sessions(course_id);
@@ -174,8 +232,11 @@ CREATE INDEX IF NOT EXISTS idx_audit_entity ON audit_logs(entity_type);
 ALTER TABLE profiles ENABLE ROW LEVEL SECURITY;
 ALTER TABLE departments ENABLE ROW LEVEL SECURITY;
 ALTER TABLE faculties ENABLE ROW LEVEL SECURITY;
+ALTER TABLE programs ENABLE ROW LEVEL SECURITY;
 ALTER TABLE courses ENABLE ROW LEVEL SECURITY;
 ALTER TABLE classes ENABLE ROW LEVEL SECURITY;
+ALTER TABLE course_assignments ENABLE ROW LEVEL SECURITY;
+ALTER TABLE timetable ENABLE ROW LEVEL SECURITY;
 ALTER TABLE course_enrollments ENABLE ROW LEVEL SECURITY;
 ALTER TABLE attendance_sessions ENABLE ROW LEVEL SECURITY;
 ALTER TABLE attendance_records ENABLE ROW LEVEL SECURITY;
@@ -210,6 +271,12 @@ CREATE POLICY "Admins can manage departments" ON departments FOR ALL USING (
   EXISTS (SELECT 1 FROM profiles WHERE id = auth.uid() AND role = 'super_admin')
 );
 
+-- Programs policies
+CREATE POLICY "Anyone can view programs" ON programs FOR SELECT USING (true);
+CREATE POLICY "Admins can manage programs" ON programs FOR ALL USING (
+  EXISTS (SELECT 1 FROM profiles WHERE id = auth.uid() AND role = 'super_admin')
+);
+
 -- Courses policies
 CREATE POLICY "Anyone can view courses" ON courses FOR SELECT USING (true);
 CREATE POLICY "Admins can manage courses" ON courses FOR ALL USING (
@@ -222,6 +289,18 @@ CREATE POLICY "Lecturers can update own courses" ON courses FOR UPDATE USING (
 -- Classes policies
 CREATE POLICY "Anyone can view classes" ON classes FOR SELECT USING (true);
 CREATE POLICY "Admins can manage classes" ON classes FOR ALL USING (
+  EXISTS (SELECT 1 FROM profiles WHERE id = auth.uid() AND role = 'super_admin')
+);
+
+-- Course Assignments policies
+CREATE POLICY "Anyone can view course assignments" ON course_assignments FOR SELECT USING (true);
+CREATE POLICY "Admins can manage course assignments" ON course_assignments FOR ALL USING (
+  EXISTS (SELECT 1 FROM profiles WHERE id = auth.uid() AND role = 'super_admin')
+);
+
+-- Timetable policies
+CREATE POLICY "Anyone can view timetable" ON timetable FOR SELECT USING (true);
+CREATE POLICY "Admins can manage timetable" ON timetable FOR ALL USING (
   EXISTS (SELECT 1 FROM profiles WHERE id = auth.uid() AND role = 'super_admin')
 );
 

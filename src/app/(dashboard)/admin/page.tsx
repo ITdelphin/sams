@@ -58,8 +58,8 @@ const alerts = [
     title: "All systems operational",
     time: "Just now",
     priority: "Low",
-    color: "text-emerald-500",
-    badge: "bg-emerald-100 text-emerald-700",
+    color: "text-green-500",
+    badge: "bg-green-100 text-green-700",
   },
   {
     icon: Sparkles,
@@ -88,7 +88,7 @@ const alerts = [
 ];
 
 const quickActions = [
-  { label: "Add Student", icon: UserPlus, href: "/admin/students", iconBg: "bg-gradient-to-br from-emerald-400 to-emerald-600", iconColor: "text-white", hover: "hover:shadow-emerald-500/25" },
+  { label: "Add Student", icon: UserPlus, href: "/admin/students", iconBg: "bg-gradient-to-br from-sky-400 to-sky-600", iconColor: "text-white", hover: "hover:shadow-sky-500/25" },
   { label: "Add Lecturer", icon: Presentation, href: "/admin/lecturers", iconBg: "bg-gradient-to-br from-blue-400 to-blue-600", iconColor: "text-white", hover: "hover:shadow-blue-500/25" },
   { label: "Add Course", icon: BookOpen, href: "/admin/courses", iconBg: "bg-gradient-to-br from-purple-400 to-purple-600", iconColor: "text-white", hover: "hover:shadow-purple-500/25" },
   { label: "Add Department", icon: Building2, href: "/admin/departments", iconBg: "bg-gradient-to-br from-amber-400 to-amber-600", iconColor: "text-white", hover: "hover:shadow-amber-500/25" },
@@ -109,7 +109,7 @@ const fallbackWeek = [
 ];
 
 const fallbackStatus = [
-  { name: "Active", value: 2450, color: "#10B981" },
+  { name: "Active", value: 2450, color: "#16A34A" },
   { name: "Inactive", value: 180, color: "#94A3B8" },
   { name: "Graduated", value: 156, color: "#3B82F6" },
   { name: "Suspended", value: 70, color: "#EF4444" },
@@ -250,7 +250,7 @@ export default function AdminDashboardPage() {
         counts[s.account_status] = (counts[s.account_status] || 0) + 1;
       });
       const statusMap: Record<string, { label: string; color: string }> = {
-        approved: { label: "Active", color: "#10B981" },
+        approved: { label: "Active", color: "#16A34A" },
         inactive: { label: "Inactive", color: "#94A3B8" },
         graduated: { label: "Graduated", color: "#3B82F6" },
         suspended: { label: "Suspended", color: "#EF4444" },
@@ -293,7 +293,7 @@ export default function AdminDashboardPage() {
   if (loading) {
     return (
       <div className="flex flex-col items-center justify-center gap-4 py-24">
-        <Loader2 className="size-8 animate-spin text-emerald-500" />
+        <Loader2 className="size-8 animate-spin text-sky-500" />
         <p className="text-sm text-muted-foreground">Loading dashboard...</p>
       </div>
     );
@@ -310,7 +310,7 @@ export default function AdminDashboardPage() {
   };
 
   const statCards = [
-    { title: "Total Students", value: stats.students, icon: GraduationCap, grad: "from-emerald-400 to-emerald-600", glow: "shadow-emerald-500/25", growth: hasRealData ? "+12.5%" : "—" },
+    { title: "Total Students", value: stats.students, icon: GraduationCap, grad: "from-sky-400 to-sky-600", glow: "shadow-sky-500/25", growth: hasRealData ? "+12.5%" : "—" },
     { title: "Total Lecturers", value: stats.lecturers, icon: Presentation, grad: "from-blue-400 to-blue-600", glow: "shadow-blue-500/25", growth: hasRealData ? "+4.2%" : "—" },
     { title: "Total Courses", value: stats.courses, icon: BookOpen, grad: "from-purple-400 to-purple-600", glow: "shadow-purple-500/25", growth: null },
     { title: "Departments", value: stats.departments, icon: Building2, grad: "from-amber-400 to-amber-600", glow: "shadow-amber-500/25", growth: null },
@@ -320,9 +320,9 @@ export default function AdminDashboardPage() {
   return (
     <div className="space-y-6">
       {/* Welcome banner */}
-      <div className="relative overflow-hidden rounded-2xl bg-gradient-to-r from-[#0F172A] via-[#0d2b2a] to-[#10B981] p-6 text-white shadow-lg shadow-emerald-500/10 sm:p-8">
+      <div className="relative overflow-hidden rounded-2xl bg-gradient-to-r from-[#1E3A8A] via-[#1E40AF] to-[#16A34A] p-6 text-white shadow-lg shadow-sky-500/10 sm:p-8">
         <div className="absolute -right-10 -top-10 h-44 w-44 rounded-full bg-white/10 blur-2xl" />
-        <div className="absolute bottom-0 right-24 h-24 w-24 rounded-full bg-emerald-400/20 blur-2xl" />
+        <div className="absolute bottom-0 right-24 h-24 w-24 rounded-full bg-sky-400/20 blur-2xl" />
         <div
           className="absolute inset-0 opacity-[0.06]"
           style={{
@@ -332,18 +332,18 @@ export default function AdminDashboardPage() {
         />
         <div className="relative">
           <div className="flex items-center gap-3">
-            <Badge className="bg-white/15 text-emerald-200 backdrop-blur">
-              <span className="mr-1 size-1.5 animate-pulse rounded-full bg-emerald-400" />
+            <Badge className="bg-white/15 text-sky-200 backdrop-blur">
+              <span className="mr-1 size-1.5 animate-pulse rounded-full bg-sky-400" />
               Live
             </Badge>
           </div>
           <h2 className="mt-3 text-2xl font-bold sm:text-3xl">Welcome back, Super Admin! 👋</h2>
-          <p className="mt-1.5 text-sm text-emerald-50/80 sm:text-base">
+          <p className="mt-1.5 text-sm text-sky-50/80 sm:text-base">
             Here&apos;s what&apos;s happening across your institution today.
           </p>
           <div className="mt-5 flex flex-wrap gap-3">
             <Link href="/admin/students">
-              <Button className="bg-white text-emerald-700 hover:bg-emerald-50">
+              <Button className="bg-white text-sky-700 hover:bg-sky-50">
                 <UserPlus className="size-4" />
                 Add Student
               </Button>
@@ -369,7 +369,7 @@ export default function AdminDashboardPage() {
                     <Icon className="size-5 text-white" />
                   </div>
                   {card.growth && (
-                    <Badge className="bg-emerald-500/10 text-emerald-600">{card.growth}</Badge>
+                    <Badge className="bg-sky-500/10 text-sky-600">{card.growth}</Badge>
                   )}
                 </div>
                 <p className="mt-4 text-2xl font-bold text-foreground">{card.value}</p>
@@ -387,7 +387,7 @@ export default function AdminDashboardPage() {
                 <Radio className="size-5 text-white" />
               </div>
               <Badge className="bg-white/20 text-white">
-                <span className="mr-1 size-1.5 animate-pulse rounded-full bg-emerald-400" />
+                <span className="mr-1 size-1.5 animate-pulse rounded-full bg-sky-400" />
                 Live
               </Badge>
             </div>
@@ -405,7 +405,7 @@ export default function AdminDashboardPage() {
               <CardTitle>Attendance Analytics</CardTitle>
               <div className="flex flex-wrap gap-2">
                 {[
-                  { label: "Present", color: "bg-emerald-500" },
+                  { label: "Present", color: "bg-green-500" },
                   { label: "Late", color: "bg-amber-500" },
                   { label: "Absent", color: "bg-red-500" },
                   { label: "Excused", color: "bg-blue-500" },
@@ -434,7 +434,7 @@ export default function AdminDashboardPage() {
                       color: "hsl(var(--foreground))",
                     }}
                   />
-                  <Line type="monotone" dataKey="present" name="Present" stroke="#10B981" strokeWidth={2.5} dot={false} />
+                  <Line type="monotone" dataKey="present" name="Present" stroke="#16A34A" strokeWidth={2.5} dot={false} />
                   <Line type="monotone" dataKey="late" name="Late" stroke="#F59E0B" strokeWidth={2} dot={false} />
                   <Line type="monotone" dataKey="absent" name="Absent" stroke="#EF4444" strokeWidth={2} dot={false} />
                   <Line type="monotone" dataKey="excused" name="Excused" stroke="#3B82F6" strokeWidth={2} dot={false} />
@@ -533,7 +533,7 @@ export default function AdminDashboardPage() {
                       <TableCell>
                         <div className="flex items-center gap-3">
                           <Avatar className="size-8">
-                            <AvatarFallback className="bg-emerald-500/10 text-xs font-semibold text-emerald-600">
+                            <AvatarFallback className="bg-sky-500/10 text-xs font-semibold text-sky-600">
                               {user.full_name?.split(" ").map((n: string) => n[0]).join("").toUpperCase().slice(0, 2) || "??"}
                             </AvatarFallback>
                           </Avatar>
@@ -562,7 +562,7 @@ export default function AdminDashboardPage() {
         <Card className="rounded-2xl border-none shadow-sm">
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
-              <Bell className="size-4 text-emerald-500" />
+              <Bell className="size-4 text-sky-500" />
               System Alerts
             </CardTitle>
           </CardHeader>
@@ -607,7 +607,7 @@ export default function AdminDashboardPage() {
                 </div>
                 <div className="mt-1.5 h-2 w-full overflow-hidden rounded-full bg-secondary">
                   <div
-                    className="h-full rounded-full bg-gradient-to-r from-emerald-500 to-teal-500"
+                    className="h-full rounded-full bg-gradient-to-r from-sky-500 to-teal-500"
                     style={{ width: `${Math.max(6, (c.count / maxCourse) * 100)}%` }}
                   />
                 </div>
@@ -616,17 +616,17 @@ export default function AdminDashboardPage() {
           </CardContent>
         </Card>
 
-        <Card className="rounded-2xl border-none bg-[#0F172A] text-white shadow-sm">
+        <Card className="rounded-2xl border-none bg-[#1E3A8A] text-white shadow-sm">
           <CardHeader>
             <CardTitle className="flex items-center gap-2 text-white">
-              <Radio className="size-4 text-emerald-400" />
+              <Radio className="size-4 text-sky-400" />
               Live Attendance Monitor
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-3">
             <div className="grid grid-cols-2 gap-3">
               <div className="rounded-xl bg-white/5 p-4">
-                <p className="text-2xl font-bold text-emerald-400">{stats.activeSessions}</p>
+                <p className="text-2xl font-bold text-sky-400">{stats.activeSessions}</p>
                 <p className="text-xs text-slate-400">Active Sessions</p>
               </div>
               <div className="rounded-xl bg-white/5 p-4">
@@ -645,8 +645,8 @@ export default function AdminDashboardPage() {
                     <span className="text-slate-300">{methodLabels[method] || method}</span>
                     <span className="flex items-center gap-2">
                       <span className="relative flex size-1.5">
-                        <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-400 opacity-75" />
-                        <span className="relative inline-flex size-1.5 rounded-full bg-emerald-500" />
+                        <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-sky-400 opacity-75" />
+                        <span className="relative inline-flex size-1.5 rounded-full bg-sky-500" />
                       </span>
                       <span className="font-semibold text-white">{count}</span>
                     </span>
@@ -660,14 +660,14 @@ export default function AdminDashboardPage() {
         <Card className="rounded-2xl border-none shadow-sm">
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
-              <Bell className="size-4 text-emerald-500" />
+              <Bell className="size-4 text-sky-500" />
               Notifications
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-3">
             {notifications.map((n, i) => (
               <div key={i} className="flex items-start gap-3 rounded-xl border border-border p-3 transition-colors hover:bg-secondary">
-                <div className="mt-0.5 text-emerald-500">
+                <div className="mt-0.5 text-sky-500">
                   <Info className="size-4" />
                 </div>
                 <div className="min-w-0 flex-1">
@@ -685,7 +685,7 @@ export default function AdminDashboardPage() {
       <Card className="rounded-2xl border-none shadow-sm">
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
-            <Activity className="size-4 text-emerald-500" />
+            <Activity className="size-4 text-sky-500" />
             System Activity
           </CardTitle>
         </CardHeader>
@@ -695,7 +695,7 @@ export default function AdminDashboardPage() {
             <div className="space-y-5">
               {activity.map((a, i) => (
                 <div key={i} className="relative">
-                  <span className="absolute -left-[21px] top-1 size-3.5 rounded-full border-2 border-background bg-emerald-500" />
+                  <span className="absolute -left-[21px] top-1 size-3.5 rounded-full border-2 border-background bg-sky-500" />
                   <div className="flex flex-wrap items-center justify-between gap-2">
                     <p className="text-sm font-medium text-foreground">{a.action}</p>
                     <span className="text-xs text-muted-foreground">{a.time}</span>

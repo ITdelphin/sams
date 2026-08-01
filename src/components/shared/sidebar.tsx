@@ -21,6 +21,9 @@ import {
   Bell,
   BarChart3,
   LogOut,
+  Layers,
+  CalendarClock,
+  ListChecks,
 } from "lucide-react";
 
 interface SidebarLink {
@@ -56,6 +59,9 @@ const iconMap: Record<string, LucideIcon> = {
   sessions: PlaySquare,
   notifications: Bell,
   reports: BarChart3,
+  programs: Layers,
+  timetable: CalendarClock,
+  assignments: ListChecks,
 };
 
 export function Sidebar({ links, role, groups }: SidebarProps) {
@@ -79,7 +85,7 @@ export function Sidebar({ links, role, groups }: SidebarProps) {
         className={cn(
           "flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition-all",
           isActive
-            ? "bg-emerald-500 text-white shadow-lg shadow-emerald-500/25"
+            ? "bg-sky-500 text-white shadow-lg shadow-sky-500/25"
             : "text-slate-400 hover:bg-white/5 hover:text-white"
         )}
       >
@@ -90,9 +96,9 @@ export function Sidebar({ links, role, groups }: SidebarProps) {
   }
 
   return (
-    <aside className="sticky top-0 hidden h-screen w-64 shrink-0 flex-col bg-[#0F172A] lg:flex">
+    <aside className="sticky top-0 hidden h-screen w-64 shrink-0 flex-col bg-[#1E3A8A] lg:flex">
       <div className="flex h-16 items-center gap-3 border-b border-white/10 px-6">
-        <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-br from-emerald-400 to-emerald-600 text-sm font-bold text-white shadow-lg shadow-emerald-500/30">
+        <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-br from-sky-400 to-sky-600 text-sm font-bold text-white shadow-lg shadow-sky-500/30">
           SA
         </div>
         <div>
@@ -120,12 +126,12 @@ export function Sidebar({ links, role, groups }: SidebarProps) {
         <div className="mb-3 rounded-2xl border border-white/10 bg-white/5 p-4">
           <div className="flex items-center gap-2">
             <span className="relative flex size-2">
-              <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-400 opacity-75" />
-              <span className="relative inline-flex size-2 rounded-full bg-emerald-500" />
+              <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-sky-400 opacity-75" />
+              <span className="relative inline-flex size-2 rounded-full bg-sky-500" />
             </span>
             <p className="text-sm font-medium text-white">System Status</p>
           </div>
-          <p className="mt-1 text-xs text-emerald-300">All Systems Operational</p>
+          <p className="mt-1 text-xs text-sky-300">All Systems Operational</p>
         </div>
         <button
           onClick={handleLogout}

@@ -86,9 +86,9 @@ export function Navbar({ role, links }: NavbarProps) {
               </svg>
             </Button>
           </SheetTrigger>
-          <SheetContent side="left" className="w-64 bg-[#0F172A] p-0">
+          <SheetContent side="left" className="w-64 bg-[#1E3A8A] p-0">
             <div className="flex h-16 items-center gap-3 border-b border-white/10 px-6">
-              <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-to-br from-emerald-400 to-emerald-600 text-xs font-bold text-white">
+              <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-to-br from-sky-400 to-sky-600 text-xs font-bold text-white">
                 SA
               </div>
               <p className="text-sm font-bold text-white">SAMS</p>
@@ -102,7 +102,7 @@ export function Navbar({ role, links }: NavbarProps) {
                     href={link.href}
                     className={`block rounded-xl px-3 py-2 text-sm font-medium transition-colors ${
                       isActive
-                        ? "bg-emerald-500 text-white"
+                        ? "bg-sky-500 text-white"
                         : "text-slate-400 hover:bg-white/5 hover:text-white"
                     }`}
                   >
@@ -127,7 +127,7 @@ export function Navbar({ role, links }: NavbarProps) {
               <path strokeLinecap="round" strokeLinejoin="round" d="M14.857 17.082a23.848 23.848 0 005.454-1.31A8.967 8.967 0 0118 9.75v-.7V9A6 6 0 006 9v.75a8.967 8.967 0 01-2.312 6.022c1.733.64 3.56 1.085 5.455 1.31m5.714 0a24.255 24.255 0 01-5.714 0m5.714 0a3 3 0 11-5.714 0" />
             </svg>
             {unreadCount > 0 && (
-              <Badge className="absolute -right-1 -top-1 flex h-5 w-5 items-center justify-center rounded-full bg-emerald-500 p-0 text-xs">
+              <Badge className="absolute -right-1 -top-1 flex h-5 w-5 items-center justify-center rounded-full bg-sky-500 p-0 text-xs">
                 {unreadCount > 9 ? "9+" : unreadCount}
               </Badge>
             )}
@@ -138,7 +138,7 @@ export function Navbar({ role, links }: NavbarProps) {
           <DropdownMenuTrigger asChild>
             <Button variant="ghost" className="relative h-9 gap-2 rounded-full">
               <Avatar className="h-9 w-9">
-                <AvatarFallback className="bg-emerald-500/10 text-xs font-semibold text-emerald-600">
+                <AvatarFallback className="bg-sky-500/10 text-xs font-semibold text-sky-600">
                   {initials}
                 </AvatarFallback>
               </Avatar>

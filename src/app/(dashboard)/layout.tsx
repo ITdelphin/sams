@@ -12,8 +12,11 @@ const adminLinks = [
   { label: "Lecturers", href: "/admin/lecturers", icon: "lecturers" },
   { label: "Faculties", href: "/admin/faculties", icon: "faculties" },
   { label: "Departments", href: "/admin/departments", icon: "departments" },
+  { label: "Programs", href: "/admin/programs", icon: "programs" },
   { label: "Courses", href: "/admin/courses", icon: "courses" },
   { label: "Classes", href: "/admin/classes", icon: "classes" },
+  { label: "Course Assignments", href: "/admin/course-assignments", icon: "assignments" },
+  { label: "Timetable", href: "/admin/timetable", icon: "timetable" },
   { label: "Attendance", href: "/admin/attendance", icon: "attendance" },
   { label: "Academic Years", href: "/admin/academic-years", icon: "years" },
   { label: "Audit Log", href: "/admin/audit-log", icon: "audit" },
@@ -35,6 +38,14 @@ const adminGroups = [
       { label: "Faculties", href: "/admin/faculties", icon: "faculties" },
       { label: "Classes", href: "/admin/classes", icon: "classes" },
       { label: "Academic Years", href: "/admin/academic-years", icon: "years" },
+    ],
+  },
+  {
+    label: "Academics",
+    links: [
+      { label: "Programs", href: "/admin/programs", icon: "programs" },
+      { label: "Course Assignments", href: "/admin/course-assignments", icon: "assignments" },
+      { label: "Timetable", href: "/admin/timetable", icon: "timetable" },
     ],
   },
   {

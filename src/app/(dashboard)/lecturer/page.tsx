@@ -67,7 +67,7 @@ function getMethodInfo(method: string): { label: string; className: string } {
     case "fingerprint":
       return { label: "Fingerprint", className: "bg-orange-100 text-orange-700 dark:bg-orange-900/50 dark:text-orange-300" };
     case "student_id_card":
-      return { label: "Student ID", className: "bg-emerald-100 text-emerald-700 dark:bg-emerald-900/50 dark:text-emerald-300" };
+      return { label: "Student ID", className: "bg-sky-100 text-sky-700 dark:bg-sky-900/50 dark:text-sky-300" };
     case "manual":
       return { label: "Manual", className: "bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-300" };
     default:
@@ -78,7 +78,7 @@ function getMethodInfo(method: string): { label: string; className: string } {
 function getStatusInfo(status: string): { label: string; className: string } {
   switch (status) {
     case "present":
-      return { label: "Present", className: "bg-emerald-100 text-emerald-700 dark:bg-emerald-900/50 dark:text-emerald-300" };
+      return { label: "Present", className: "bg-green-100 text-green-700 dark:bg-green-900/50 dark:text-green-300" };
     case "late":
       return { label: "Late", className: "bg-amber-100 text-amber-700 dark:bg-amber-900/50 dark:text-amber-300" };
     case "absent":
@@ -187,7 +187,7 @@ const fallbackClasses = [
 ];
 
 const quickActions = [
-  { label: "Start Attendance", icon: Play, href: "/lecturer/sessions", iconBg: "bg-emerald-500/10", iconColor: "text-emerald-600 dark:text-emerald-400", hover: "hover:shadow-emerald-500/20" },
+  { label: "Start Attendance", icon: Play, href: "/lecturer/sessions", iconBg: "bg-sky-500/10", iconColor: "text-sky-600 dark:text-sky-400", hover: "hover:shadow-sky-500/20" },
   { label: "Generate QR Code", icon: QrCode, href: "/lecturer/sessions", iconBg: "bg-blue-500/10", iconColor: "text-blue-600 dark:text-blue-400", hover: "hover:shadow-blue-500/20" },
   { label: "Face Recognition", icon: ScanFace, href: "/lecturer/sessions", iconBg: "bg-purple-500/10", iconColor: "text-purple-600 dark:text-purple-400", hover: "hover:shadow-purple-500/20" },
   { label: "Fingerprint Scan", icon: Fingerprint, href: "/lecturer/sessions", iconBg: "bg-orange-500/10", iconColor: "text-orange-600 dark:text-orange-400", hover: "hover:shadow-orange-500/20" },
@@ -225,7 +225,9 @@ export default function LecturerDashboardPage() {
         const [profileRes, coursesRes, classesRes, notifsRes] = await Promise.all([
           supabase.from("profiles").select("full_name, role").eq("id", userId).single(),
           supabase.from("courses").select("*, departments(name)").eq("lecturer_id", userId),
-          supabase.from("classes").select("*, courses(name, code, lecturer_id)"),
+          supabase
+            .from("course_assignments")
+            .select("*, courses(name, code, lecturer_id), classes(id, name, section, year)"),
           supabase
             .from("notifications")
             .select("*")
@@ -290,7 +292,7 @@ export default function LecturerDashboardPage() {
   if (loading) {
     return (
       <div className="flex flex-col items-center justify-center gap-4 py-24">
-        <Loader2 className="size-8 animate-spin text-emerald-500" />
+        <Loader2 className="size-8 animate-spin text-sky-500" />
         <p className="text-sm text-muted-foreground">Loading dashboard...</p>
       </div>
     );
@@ -320,7 +322,7 @@ export default function LecturerDashboardPage() {
   return (
     <div className="space-y-6">
       {/* Welcome banner */}
-      <div className="relative overflow-hidden rounded-2xl bg-gradient-to-r from-emerald-600 via-emerald-500 to-teal-500 p-6 text-white shadow-lg shadow-emerald-500/20 sm:p-8">
+      <div className="relative overflow-hidden rounded-2xl bg-gradient-to-r from-sky-600 via-sky-500 to-teal-500 p-6 text-white shadow-lg shadow-sky-500/20 sm:p-8">
         <div className="absolute -right-10 -top-10 h-40 w-40 rounded-full bg-white/10" />
         <div className="absolute right-20 top-10 h-20 w-20 rounded-full bg-white/5" />
         <div className="absolute bottom-0 right-40 h-16 w-16 rounded-full bg-white/5" />
@@ -328,12 +330,12 @@ export default function LecturerDashboardPage() {
           <h2 className="text-2xl font-bold sm:text-3xl">
             Welcome back, {firstName} 👋
           </h2>
-          <p className="mt-1.5 text-sm text-emerald-50 sm:text-base">
+          <p className="mt-1.5 text-sm text-sky-50 sm:text-base">
             Here&apos;s what&apos;s happening with your classes today.
           </p>
           <div className="mt-5 flex flex-wrap gap-3">
             <Link href="/lecturer/sessions">
-              <Button className="bg-white text-emerald-700 hover:bg-emerald-50">
+              <Button className="bg-white text-sky-700 hover:bg-sky-50">
                 <Play className="size-4" />
                 Start Attendance
               </Button>
@@ -355,8 +357,8 @@ export default function LecturerDashboardPage() {
         <Card className="rounded-2xl border-none shadow-sm transition-shadow hover:shadow-md">
           <CardContent className="p-5">
             <div className="flex items-start justify-between">
-              <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-emerald-500/10">
-                <BookOpen className="size-6 text-emerald-600" />
+              <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-sky-500/10">
+                <BookOpen className="size-6 text-sky-600" />
               </div>
             </div>
             <p className="mt-4 text-3xl font-bold text-foreground">{courses.length}</p>
@@ -394,7 +396,7 @@ export default function LecturerDashboardPage() {
               <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-purple-500/10">
                 <TrendingUp className="size-6 text-purple-600" />
               </div>
-              <Badge className="bg-emerald-500/10 text-emerald-600">
+              <Badge className="bg-sky-500/10 text-sky-600">
                 <ArrowUpRight className="mr-0.5 size-3" />
                 {rateDelta}
               </Badge>
@@ -421,15 +423,15 @@ export default function LecturerDashboardPage() {
             {todayClasses.map((c) => (
               <div
                 key={c.id}
-                className="group rounded-xl border border-border p-4 transition-all hover:border-emerald-300 hover:shadow-md"
+                className="group rounded-xl border border-border p-4 transition-all hover:border-sky-300 hover:shadow-md"
               >
-                <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-emerald-500/10">
-                  <BookOpen className="size-5 text-emerald-600" />
+                <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-sky-500/10">
+                  <BookOpen className="size-5 text-sky-600" />
                 </div>
                 <p className="mt-3 font-semibold text-foreground">{c.courses?.name || "—"}</p>
                 <div className="mt-1 flex items-center gap-2">
                   <Badge variant="secondary">{c.courses?.code || "—"}</Badge>
-                  <Badge className="bg-emerald-500/10 text-emerald-600">Upcoming</Badge>
+                  <Badge className="bg-sky-500/10 text-sky-600">Upcoming</Badge>
                 </div>
                 <div className="mt-3 space-y-1.5 text-sm text-muted-foreground">
                   <div className="flex items-center gap-2">
@@ -442,7 +444,7 @@ export default function LecturerDashboardPage() {
                   </div>
                 </div>
                 <Link href="/lecturer/sessions">
-                  <Button size="sm" className="mt-4 w-full bg-emerald-500 hover:bg-emerald-600">
+                  <Button size="sm" className="mt-4 w-full bg-sky-500 hover:bg-sky-600">
                     <Play className="size-3.5" />
                     Start Session
                   </Button>
@@ -455,7 +457,7 @@ export default function LecturerDashboardPage() {
         <Card className="rounded-2xl border-none shadow-sm">
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
-              <Bell className="size-4 text-emerald-500" />
+              <Bell className="size-4 text-sky-500" />
               Notifications
             </CardTitle>
           </CardHeader>
@@ -474,15 +476,15 @@ export default function LecturerDashboardPage() {
                     key={n.id}
                     className="flex items-start gap-3 rounded-xl border border-border p-3 transition-colors hover:bg-secondary"
                   >
-                    <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-emerald-500/10">
-                      <Icon className="size-4 text-emerald-600" />
+                    <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-sky-500/10">
+                      <Icon className="size-4 text-sky-600" />
                     </div>
                     <div className="min-w-0">
                       <p className="truncate text-sm font-medium text-foreground">{n.title}</p>
                       <p className="text-xs text-muted-foreground">{n.message}</p>
                       <p className="mt-1 text-[11px] text-muted-foreground/70">{formatDate(n.created_at)}</p>
                     </div>
-                    {!n.is_read && <span className="mt-1 size-2 shrink-0 rounded-full bg-emerald-500" />}
+                    {!n.is_read && <span className="mt-1 size-2 shrink-0 rounded-full bg-sky-500" />}
                   </div>
                 );
               })
@@ -525,7 +527,7 @@ export default function LecturerDashboardPage() {
               <CardTitle>Attendance Overview</CardTitle>
               <div className="flex flex-wrap gap-2">
                 {[
-                  { label: "Present", color: "bg-emerald-500" },
+                  { label: "Present", color: "bg-green-500" },
                   { label: "Absent", color: "bg-red-500" },
                   { label: "Late", color: "bg-amber-500" },
                   { label: "Excused", color: "bg-blue-500" },
@@ -554,7 +556,7 @@ export default function LecturerDashboardPage() {
                       color: "hsl(var(--foreground))",
                     }}
                   />
-                  <Line type="monotone" dataKey="present" name="Present" stroke="#10B981" strokeWidth={2.5} dot={false} />
+                  <Line type="monotone" dataKey="present" name="Present" stroke="#16A34A" strokeWidth={2.5} dot={false} />
                   <Line type="monotone" dataKey="absent" name="Absent" stroke="#EF4444" strokeWidth={2} dot={false} />
                   <Line type="monotone" dataKey="late" name="Late" stroke="#F59E0B" strokeWidth={2} dot={false} />
                   <Line type="monotone" dataKey="excused" name="Excused" stroke="#3B82F6" strokeWidth={2} dot={false} />
@@ -567,7 +569,7 @@ export default function LecturerDashboardPage() {
         <Card className="rounded-2xl border-none shadow-sm">
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
-              <Activity className="size-4 text-emerald-500" />
+              <Activity className="size-4 text-sky-500" />
               Recent Attendance
             </CardTitle>
           </CardHeader>
@@ -581,7 +583,7 @@ export default function LecturerDashboardPage() {
                   className="flex items-center gap-3 rounded-xl border border-border p-3 transition-colors hover:bg-secondary"
                 >
                   <Avatar className="size-9 shrink-0">
-                    <AvatarFallback className="bg-emerald-500/10 text-xs font-semibold text-emerald-600">
+                    <AvatarFallback className="bg-sky-500/10 text-xs font-semibold text-sky-600">
                       {getInitials(r.student?.full_name)}
                     </AvatarFallback>
                   </Avatar>
@@ -649,7 +651,7 @@ export default function LecturerDashboardPage() {
                       <TableCell>
                         <div className="flex items-center gap-3">
                           <Avatar className="size-8">
-                            <AvatarFallback className="bg-emerald-500/10 text-xs font-semibold text-emerald-600">
+                            <AvatarFallback className="bg-sky-500/10 text-xs font-semibold text-sky-600">
                               {getInitials(r.student?.full_name)}
                             </AvatarFallback>
                           </Avatar>

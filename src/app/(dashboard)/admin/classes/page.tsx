@@ -43,34 +43,55 @@ import {
   Trash2,
   Loader2,
   Inbox,
+  BookOpen,
+  CalendarDays,
+  Layers,
 } from "lucide-react";
 
 type ClassRow = {
   id: string;
   name: string;
-  course_id: string;
-  schedule: string | null;
+  faculty_id: string | null;
+  department_id: string | null;
+  program_id: string | null;
+  academic_year_id: string | null;
+  semester_id: string | null;
+  year: number;
+  section: string;
   room: string | null;
+  capacity: number | null;
   created_at: string;
-  courses?: { name: string; code: string } | null;
+  programs?: { name: string; code: string } | null;
+  academic_years?: { name: string } | null;
+  semesters?: { name: string } | null;
 };
 
-type Course = {
-  id: string;
-  name: string;
-  code: string;
-};
+type Faculty = { id: string; name: string };
+type Department = { id: string; name: string; faculty_id: string };
+type Program = { id: string; name: string; code: string; faculty_id: string; department_id: string };
+type AcademicYear = { id: string; name: string };
+type Semester = { id: string; name: string; academic_year_id: string };
 
 const EMPTY_CLASS_FORM = {
   name: "",
-  course_id: "",
-  schedule: "",
+  faculty_id: "",
+  department_id: "",
+  program_id: "",
+  academic_year_id: "",
+  semester_id: "",
+  year: 1,
+  section: "A",
   room: "",
+  capacity: 50,
 };
 
 export default function AdminClassesPage() {
   const [classes, setClasses] = useState<ClassRow[]>([]);
-  const [courses, setCourses] = useState<Course[]>([]);
+  const [faculties, setFaculties] = useState<Faculty[]>([]);
+  const [departments, setDepartments] = useState<Department[]>([]);
+  const [programs, setPrograms] = useState<Program[]>([]);
+  const [academicYears, setAcademicYears] = useState<AcademicYear[]>([]);
+  const [semesters, setSemesters] = useState<Semester[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
   const [saving, setSaving] = useState(false);
@@ -90,7 +111,7 @@ export default function AdminClassesPage() {
     setLoading(true);
     const { data, error } = await supabase
       .from("classes")
-      .select("*, courses(name, code)")
+      .select("*, programs(name, code), academic_years(name), semesters(name)")
       .order("created_at", { ascending: false });
 
     if (error) {
@@ -103,44 +124,92 @@ export default function AdminClassesPage() {
     setLoading(false);
   }
 
-  async function fetchCourses() {
-    const { data } = await supabase
-      .from("courses")
-      .select("id, name, code")
-      .order("name");
+  async function fetchReferenceData() {
+    const [facRes, deptRes, progRes, yearRes, semRes] = await Promise.all([
+      supabase.from("faculties").select("id, name").order("name"),
+      supabase.from("departments").select("id, name, faculty_id").order("name"),
+      supabase.from("programs").select("id, name, code, faculty_id, department_id").order("name"),
+      supabase.from("academic_years").select("id, name").order("name"),
+      supabase.from("semesters").select("id, name, academic_year_id").order("name"),
+    ]);
 
-    if (data) {
-      setCourses(data);
-    }
+    if (facRes.data) setFaculties(facRes.data);
+    if (deptRes.data) setDepartments(deptRes.data);
+    if (progRes.data) setPrograms(progRes.data);
+    if (yearRes.data) setAcademicYears(yearRes.data);
+    if (semRes.data) setSemesters(semRes.data);
   }
 
   useEffect(() => {
     async function init() {
-      await Promise.all([fetchClasses(), fetchCourses()]);
+      await Promise.all([fetchClasses(), fetchReferenceData()]);
     }
     init();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  function departmentsForFaculty(facultyId: string) {
+    return departments.filter((d) => d.faculty_id === facultyId);
+  }
+
+  function programsForDepartment(departmentId: string) {
+    return programs.filter((p) => p.department_id === departmentId);
+  }
+
+  function semestersForYear(yearId: string) {
+    return semesters.filter((s) => s.academic_year_id === yearId);
+  }
+
+  function buildClassName(form: typeof EMPTY_CLASS_FORM): string {
+    const program = programs.find((p) => p.id === form.program_id);
+    const year = form.year ? `Year ${form.year}` : "";
+    return program
+      ? `${program.name} ${year} - Section ${form.section}`
+      : form.name.trim();
+  }
+
+  function onFormChange(
+    setter: React.Dispatch<React.SetStateAction<typeof EMPTY_CLASS_FORM>>,
+    patch: Partial<typeof EMPTY_CLASS_FORM>
+  ) {
+    setter((prev) => {
+      const next = { ...prev, ...patch };
+      if (
+        !("name" in patch) &&
+        (patch.program_id !== undefined ||
+          patch.year !== undefined ||
+          patch.section !== undefined)
+      ) {
+        next.name = buildClassName(next);
+      }
+      return next;
+    });
+  }
+
   async function handleAddClass() {
-    if (!addForm.name.trim() || !addForm.course_id) {
-      toast.error("Please fill in all required fields");
+    if (!addForm.program_id) {
+      toast.error("Please select a program");
       return;
     }
 
     setSaving(true);
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const { error } = await (supabase.from("classes") as any).insert({
       name: addForm.name.trim(),
-      course_id: addForm.course_id,
-      schedule: addForm.schedule.trim() || null,
+      faculty_id: addForm.faculty_id || null,
+      department_id: addForm.department_id || null,
+      program_id: addForm.program_id,
+      academic_year_id: addForm.academic_year_id || null,
+      semester_id: addForm.semester_id || null,
+      year: addForm.year,
+      section: addForm.section.trim(),
       room: addForm.room.trim() || null,
+      capacity: addForm.capacity,
     });
 
     setSaving(false);
 
     if (error) {
-      toast.error("Failed to create class");
+      toast.error(error.message || "Failed to create class");
       return;
     }
 
@@ -152,27 +221,31 @@ export default function AdminClassesPage() {
 
   async function handleEditClass() {
     if (!editingClass) return;
-    if (!editForm.name.trim() || !editForm.course_id) {
-      toast.error("Please fill in all required fields");
+    if (!editForm.program_id) {
+      toast.error("Please select a program");
       return;
     }
 
     setSaving(true);
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const { error } = await (supabase.from("classes") as any)
       .update({
         name: editForm.name.trim(),
-        course_id: editForm.course_id,
-        schedule: editForm.schedule.trim() || null,
+        faculty_id: editForm.faculty_id || null,
+        department_id: editForm.department_id || null,
+        program_id: editForm.program_id,
+        academic_year_id: editForm.academic_year_id || null,
+        semester_id: editForm.semester_id || null,
+        year: editForm.year,
+        section: editForm.section.trim(),
         room: editForm.room.trim() || null,
-        created_at: editingClass.created_at,
+        capacity: editForm.capacity,
       })
       .eq("id", editingClass.id);
 
     setSaving(false);
 
     if (error) {
-      toast.error("Failed to update class");
+      toast.error(error.message || "Failed to update class");
       return;
     }
 
@@ -208,21 +281,17 @@ export default function AdminClassesPage() {
     setEditingClass(classItem);
     setEditForm({
       name: classItem.name,
-      course_id: classItem.course_id,
-      schedule: classItem.schedule || "",
+      faculty_id: classItem.faculty_id || "",
+      department_id: classItem.department_id || "",
+      program_id: classItem.program_id || "",
+      academic_year_id: classItem.academic_year_id || "",
+      semester_id: classItem.semester_id || "",
+      year: classItem.year,
+      section: classItem.section,
       room: classItem.room || "",
+      capacity: classItem.capacity || 50,
     });
     setEditDialogOpen(true);
-  }
-
-  function openDeleteDialog(classItem: ClassRow) {
-    setDeletingClass(classItem);
-    setDeleteDialogOpen(true);
-  }
-
-  function getCourseLabel(courseId: string): string {
-    const course = courses.find((c) => c.id === courseId);
-    return course ? `${course.name} (${course.code})` : "—";
   }
 
   const filteredClasses = useMemo(() => {
@@ -231,9 +300,9 @@ export default function AdminClassesPage() {
     return classes.filter(
       (cls) =>
         cls.name.toLowerCase().includes(query) ||
-        cls.courses?.name?.toLowerCase().includes(query) ||
-        cls.courses?.code?.toLowerCase().includes(query) ||
-        cls.schedule?.toLowerCase().includes(query) ||
+        cls.programs?.name?.toLowerCase().includes(query) ||
+        cls.programs?.code?.toLowerCase().includes(query) ||
+        cls.section?.toLowerCase().includes(query) ||
         cls.room?.toLowerCase().includes(query)
     );
   }, [classes, searchQuery]);
@@ -247,6 +316,178 @@ export default function AdminClassesPage() {
     );
   }
 
+  const formDialogBody = (
+    isEdit: boolean,
+    form: typeof EMPTY_CLASS_FORM,
+    setForm: (patch: Partial<typeof EMPTY_CLASS_FORM>) => void
+  ) => {
+    const depts = departmentsForFaculty(form.faculty_id);
+    const progs = programsForDepartment(form.department_id);
+    const sems = semestersForYear(form.academic_year_id);
+
+    return (
+      <div className="space-y-4 py-2">
+        <div className="grid grid-cols-2 gap-3">
+          <div className="space-y-2">
+            <Label>Faculty</Label>
+            <Select
+              value={form.faculty_id}
+              onValueChange={(value) =>
+                setForm({
+                  faculty_id: value ?? "",
+                  department_id: "",
+                  program_id: "",
+                })
+              }
+            >
+              <SelectTrigger className="w-full">
+                <SelectValue placeholder="Select faculty" />
+              </SelectTrigger>
+              <SelectContent>
+                {faculties.map((f) => (
+                  <SelectItem key={f.id} value={f.id}>
+                    {f.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+          <div className="space-y-2">
+            <Label>Department</Label>
+            <Select
+              value={form.department_id}
+              onValueChange={(value) =>
+                setForm({ department_id: value ?? "", program_id: "" })
+              }
+            >
+              <SelectTrigger className="w-full">
+                <SelectValue placeholder="Select department" />
+              </SelectTrigger>
+              <SelectContent>
+                {depts.map((d) => (
+                  <SelectItem key={d.id} value={d.id}>
+                    {d.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+        </div>
+        <div className="space-y-2">
+          <Label>Program *</Label>
+          <Select
+            value={form.program_id}
+            onValueChange={(value) => setForm({ program_id: value ?? "" })}
+          >
+            <SelectTrigger className="w-full">
+              <SelectValue placeholder="Select program" />
+            </SelectTrigger>
+            <SelectContent>
+              {progs.map((p) => (
+                <SelectItem key={p.id} value={p.id}>
+                  {p.name} ({p.code})
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+        <div className="grid grid-cols-2 gap-3">
+          <div className="space-y-2">
+            <Label>Academic Year</Label>
+            <Select
+              value={form.academic_year_id}
+              onValueChange={(value) =>
+                setForm({ academic_year_id: value ?? "", semester_id: "" })
+              }
+            >
+              <SelectTrigger className="w-full">
+                <SelectValue placeholder="Select year" />
+              </SelectTrigger>
+              <SelectContent>
+                {academicYears.map((y) => (
+                  <SelectItem key={y.id} value={y.id}>
+                    {y.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+          <div className="space-y-2">
+            <Label>Semester</Label>
+            <Select
+              value={form.semester_id}
+              onValueChange={(value) => setForm({ semester_id: value ?? "" })}
+            >
+              <SelectTrigger className="w-full">
+                <SelectValue placeholder="Select semester" />
+              </SelectTrigger>
+              <SelectContent>
+                {sems.map((s) => (
+                  <SelectItem key={s.id} value={s.id}>
+                    {s.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+        </div>
+        <div className="grid grid-cols-2 gap-3">
+          <div className="space-y-2">
+            <Label>Program Year *</Label>
+            <Input
+              type="number"
+              min={1}
+              max={10}
+              value={form.year}
+              onChange={(e) =>
+                setForm({ year: Number(e.target.value) || 1 })
+              }
+            />
+          </div>
+          <div className="space-y-2">
+            <Label>Section *</Label>
+            <Input
+              value={form.section}
+              onChange={(e) =>
+                setForm({ section: e.target.value.toUpperCase() })
+              }
+              placeholder="A"
+            />
+          </div>
+        </div>
+        <div className="grid grid-cols-2 gap-3">
+          <div className="space-y-2">
+            <Label>Room</Label>
+            <Input
+              value={form.room}
+              onChange={(e) => setForm({ room: e.target.value })}
+              placeholder="e.g. Room 301"
+            />
+          </div>
+          <div className="space-y-2">
+            <Label>Capacity</Label>
+            <Input
+              type="number"
+              min={1}
+              value={form.capacity}
+              onChange={(e) =>
+                setForm({ capacity: Number(e.target.value) || 50 })
+              }
+            />
+          </div>
+        </div>
+        <div className="space-y-2">
+          <Label>Class Name</Label>
+          <Input
+            value={form.name}
+            onChange={(e) => setForm({ name: e.target.value })}
+            placeholder="Auto-generated from program details"
+          />
+        </div>
+      </div>
+    );
+  };
+
   return (
     <div className="space-y-6">
       <div>
@@ -254,11 +495,11 @@ export default function AdminClassesPage() {
           Class Management
         </h1>
         <p className="text-sm text-muted-foreground">
-          Manage classes, schedules, and room assignments.
+          Program-based classes with academic year, semester, and section.
         </p>
       </div>
 
-      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <Card>
           <CardContent className="flex items-center gap-4">
             <div className="flex size-10 shrink-0 items-center justify-center rounded-lg bg-primary/10">
@@ -272,29 +513,34 @@ export default function AdminClassesPage() {
         </Card>
         <Card>
           <CardContent className="flex items-center gap-4">
-            <div className="flex size-10 shrink-0 items-center justify-center rounded-lg bg-green-500/10">
-              <Users className="size-5 text-green-600 dark:text-green-400" />
+            <div className="flex size-10 shrink-0 items-center justify-center rounded-lg bg-sky-500/10">
+              <Layers className="size-5 text-sky-600 dark:text-sky-400" />
             </div>
             <div>
-              <p className="text-2xl font-bold">{courses.length}</p>
-              <p className="text-xs text-muted-foreground">
-                Linked Courses
-              </p>
+              <p className="text-2xl font-bold">{programs.length}</p>
+              <p className="text-xs text-muted-foreground">Programs</p>
+            </div>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardContent className="flex items-center gap-4">
+            <div className="flex size-10 shrink-0 items-center justify-center rounded-lg bg-green-500/10">
+              <CalendarDays className="size-5 text-green-600 dark:text-green-400" />
+            </div>
+            <div>
+              <p className="text-2xl font-bold">{academicYears.length}</p>
+              <p className="text-xs text-muted-foreground">Academic Years</p>
             </div>
           </CardContent>
         </Card>
         <Card>
           <CardContent className="flex items-center gap-4">
             <div className="flex size-10 shrink-0 items-center justify-center rounded-lg bg-yellow-500/10">
-              <Users className="size-5 text-yellow-600 dark:text-yellow-400" />
+              <BookOpen className="size-5 text-yellow-600 dark:text-yellow-400" />
             </div>
             <div>
-              <p className="text-2xl font-bold">
-                {classes.filter((c) => !c.schedule).length}
-              </p>
-              <p className="text-xs text-muted-foreground">
-                No Schedule Set
-              </p>
+              <p className="text-2xl font-bold">{semesters.length}</p>
+              <p className="text-xs text-muted-foreground">Semesters</p>
             </div>
           </CardContent>
         </Card>
@@ -348,9 +594,9 @@ export default function AdminClassesPage() {
               <TableHeader>
                 <TableRow>
                   <TableHead>Class Name</TableHead>
-                  <TableHead>Course</TableHead>
+                  <TableHead>Program</TableHead>
                   <TableHead className="hidden md:table-cell">
-                    Schedule
+                    Year / Semester
                   </TableHead>
                   <TableHead className="hidden sm:table-cell">Room</TableHead>
                   <TableHead className="text-right">Actions</TableHead>
@@ -363,17 +609,22 @@ export default function AdminClassesPage() {
                       <span className="font-medium">{classItem.name}</span>
                     </TableCell>
                     <TableCell className="text-muted-foreground">
-                      {classItem.courses
-                        ? `${classItem.courses.name}`
-                        : "—"}
-                      {classItem.courses && (
-                        <Badge variant="secondary" className="ml-1.5">
-                          {classItem.courses.code}
+                      {classItem.programs ? (
+                        <Badge variant="secondary">
+                          {classItem.programs.code}
                         </Badge>
+                      ) : (
+                        "—"
                       )}
                     </TableCell>
                     <TableCell className="hidden md:table-cell text-muted-foreground">
-                      {classItem.schedule || "—"}
+                      {classItem.academic_years?.name
+                        ? `${classItem.academic_years.name}${
+                            classItem.semesters?.name
+                              ? ` · ${classItem.semesters.name}`
+                              : ""
+                          }`
+                        : "—"}
                     </TableCell>
                     <TableCell className="hidden sm:table-cell text-muted-foreground">
                       {classItem.room || "—"}
@@ -390,7 +641,10 @@ export default function AdminClassesPage() {
                         <Button
                           variant="ghost"
                           size="icon-sm"
-                          onClick={() => openDeleteDialog(classItem)}
+                          onClick={() => {
+                            setDeletingClass(classItem);
+                            setDeleteDialogOpen(true);
+                          }}
                         >
                           <Trash2 className="size-3.5 text-destructive" />
                         </Button>
@@ -405,62 +659,16 @@ export default function AdminClassesPage() {
       </Card>
 
       <Dialog open={addDialogOpen} onOpenChange={setAddDialogOpen}>
-        <DialogContent className="sm:max-w-md">
+        <DialogContent className="sm:max-w-lg">
           <DialogHeader>
             <DialogTitle>Add New Class</DialogTitle>
           </DialogHeader>
-          <div className="space-y-4 py-2">
-            <div className="space-y-2">
-              <Label>Class Name *</Label>
-              <Input
-                value={addForm.name}
-                onChange={(e) =>
-                  setAddForm((prev) => ({ ...prev, name: e.target.value }))
-                }
-                placeholder="e.g. CS101 - Section A"
-              />
-            </div>
-            <div className="space-y-2">
-              <Label>Course *</Label>
-              <Select
-                value={addForm.course_id}
-                onValueChange={(value) =>
-                  setAddForm((prev) => ({ ...prev, course_id: value ?? "" }))
-                }
-              >
-                <SelectTrigger className="w-full">
-                  <SelectValue placeholder="Select course" />
-                </SelectTrigger>
-                <SelectContent>
-                  {courses.map((course) => (
-                    <SelectItem key={course.id} value={course.id}>
-                      {course.name} ({course.code})
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-            <div className="space-y-2">
-              <Label>Schedule</Label>
-              <Input
-                value={addForm.schedule}
-                onChange={(e) =>
-                  setAddForm((prev) => ({ ...prev, schedule: e.target.value }))
-                }
-                placeholder="e.g. Mon/Wed 10:00-11:30"
-              />
-            </div>
-            <div className="space-y-2">
-              <Label>Room</Label>
-              <Input
-                value={addForm.room}
-                onChange={(e) =>
-                  setAddForm((prev) => ({ ...prev, room: e.target.value }))
-                }
-                placeholder="e.g. Room 301"
-              />
-            </div>
-          </div>
+          {formDialogBody(
+            false,
+            addForm,
+            (patch) =>
+              onFormChange(setAddForm, patch)
+          )}
           <Separator />
           <div className="flex justify-end gap-2 pt-2">
             <Button
@@ -487,62 +695,16 @@ export default function AdminClassesPage() {
       </Dialog>
 
       <Dialog open={editDialogOpen} onOpenChange={setEditDialogOpen}>
-        <DialogContent className="sm:max-w-md">
+        <DialogContent className="sm:max-w-lg">
           <DialogHeader>
             <DialogTitle>Edit Class</DialogTitle>
           </DialogHeader>
-          <div className="space-y-4 py-2">
-            <div className="space-y-2">
-              <Label>Class Name *</Label>
-              <Input
-                value={editForm.name}
-                onChange={(e) =>
-                  setEditForm((prev) => ({ ...prev, name: e.target.value }))
-                }
-                placeholder="e.g. CS101 - Section A"
-              />
-            </div>
-            <div className="space-y-2">
-              <Label>Course *</Label>
-              <Select
-                value={editForm.course_id}
-                onValueChange={(value) =>
-                  setEditForm((prev) => ({ ...prev, course_id: value ?? "" }))
-                }
-              >
-                <SelectTrigger className="w-full">
-                  <SelectValue placeholder="Select course" />
-                </SelectTrigger>
-                <SelectContent>
-                  {courses.map((course) => (
-                    <SelectItem key={course.id} value={course.id}>
-                      {course.name} ({course.code})
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-            <div className="space-y-2">
-              <Label>Schedule</Label>
-              <Input
-                value={editForm.schedule}
-                onChange={(e) =>
-                  setEditForm((prev) => ({ ...prev, schedule: e.target.value }))
-                }
-                placeholder="e.g. Mon/Wed 10:00-11:30"
-              />
-            </div>
-            <div className="space-y-2">
-              <Label>Room</Label>
-              <Input
-                value={editForm.room}
-                onChange={(e) =>
-                  setEditForm((prev) => ({ ...prev, room: e.target.value }))
-                }
-                placeholder="e.g. Room 301"
-              />
-            </div>
-          </div>
+          {formDialogBody(
+            true,
+            editForm,
+            (patch) =>
+              onFormChange(setEditForm, patch)
+          )}
           <Separator />
           <div className="flex justify-end gap-2 pt-2">
             <Button

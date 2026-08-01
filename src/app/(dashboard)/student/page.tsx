@@ -77,11 +77,11 @@ const fallbackRecords = [
 const fallbackAssignments = [
   { title: "Database Normalization Project", course: "DB201", due: "Due in 3 days", status: "In Progress", badge: "bg-amber-100 text-amber-700" },
   { title: "Web Portfolio Design", course: "CS101", due: "Due tomorrow", status: "Not Started", badge: "bg-red-100 text-red-700" },
-  { title: "Software Architecture Essay", course: "SE301", due: "Submitted", status: "Submitted", badge: "bg-emerald-100 text-emerald-700" },
+  { title: "Software Architecture Essay", course: "SE301", due: "Submitted", status: "Submitted", badge: "bg-green-100 text-green-700" },
 ];
 
 const fallbackAnnouncements = [
-  { title: "New class schedule released", message: "The timetable for the next semester is now available.", time: "2h ago", icon: Megaphone, color: "text-emerald-500", bg: "bg-emerald-500/10" },
+  { title: "New class schedule released", message: "The timetable for the next semester is now available.", time: "2h ago", icon: Megaphone, color: "text-sky-500", bg: "bg-sky-500/10" },
   { title: "Midterm exams announced", message: "Midterm exams will begin on March 10.", time: "1d ago", icon: FileText, color: "text-blue-500", bg: "bg-blue-500/10" },
   { title: "Attendance reminder", message: "Maintain at least 80% attendance to be eligible for exams.", time: "3d ago", icon: Bell, color: "text-amber-500", bg: "bg-amber-500/10" },
 ];
@@ -95,7 +95,7 @@ function getMethodInfo(method: string): { label: string; className: string } {
     case "fingerprint":
       return { label: "Fingerprint", className: "bg-orange-100 text-orange-700 dark:bg-orange-900/50 dark:text-orange-300" };
     case "student_id_card":
-      return { label: "Student ID", className: "bg-emerald-100 text-emerald-700 dark:bg-emerald-900/50 dark:text-emerald-300" };
+      return { label: "Student ID", className: "bg-sky-100 text-sky-700 dark:bg-sky-900/50 dark:text-sky-300" };
     case "manual":
       return { label: "Manual", className: "bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-300" };
     default:
@@ -106,7 +106,7 @@ function getMethodInfo(method: string): { label: string; className: string } {
 function getStatusInfo(status: string): { label: string; className: string } {
   switch (status) {
     case "present":
-      return { label: "Present", className: "bg-emerald-100 text-emerald-700 dark:bg-emerald-900/50 dark:text-emerald-300" };
+      return { label: "Present", className: "bg-green-100 text-green-700 dark:bg-green-900/50 dark:text-green-300" };
     case "late":
       return { label: "Late", className: "bg-amber-100 text-amber-700 dark:bg-amber-900/50 dark:text-amber-300" };
     case "absent":
@@ -234,7 +234,7 @@ export default function StudentDashboardPage() {
   if (loading) {
     return (
       <div className="flex flex-col items-center justify-center gap-4 py-24">
-        <Loader2 className="size-8 animate-spin text-emerald-500" />
+        <Loader2 className="size-8 animate-spin text-sky-500" />
         <p className="text-sm text-muted-foreground">Loading dashboard...</p>
       </div>
     );
@@ -256,18 +256,18 @@ export default function StudentDashboardPage() {
   const total = totals.present + totals.late + totals.absent + totals.excused;
   const attendancePct = total > 0 ? Math.round((totals.present / total) * 100) : 95;
   const ringColor =
-    attendancePct >= 80 ? "stroke-emerald-500" : attendancePct >= 60 ? "stroke-amber-500" : "stroke-red-500";
+    attendancePct >= 80 ? "stroke-sky-500" : attendancePct >= 60 ? "stroke-amber-500" : "stroke-red-500";
   const pct = Math.min(100, Math.max(0, attendancePct));
 
   const summary = [
-    { label: "Present", value: totals.present, pct: total > 0 ? Math.round((totals.present / total) * 100) : 0, icon: CheckCircle2, color: "text-emerald-500", bg: "bg-emerald-500/10" },
+    { label: "Present", value: totals.present, pct: total > 0 ? Math.round((totals.present / total) * 100) : 0, icon: CheckCircle2, color: "text-green-500", bg: "bg-green-500/10" },
     { label: "Late", value: totals.late, pct: total > 0 ? Math.round((totals.late / total) * 100) : 0, icon: Clock, color: "text-amber-500", bg: "bg-amber-500/10" },
     { label: "Absent", value: totals.absent, pct: total > 0 ? Math.round((totals.absent / total) * 100) : 0, icon: XCircle, color: "text-red-500", bg: "bg-red-500/10" },
     { label: "Excused", value: totals.excused, pct: total > 0 ? Math.round((totals.excused / total) * 100) : 0, icon: ShieldCheck, color: "text-blue-500", bg: "bg-blue-500/10" },
   ];
 
   const quickActions = [
-    { label: "Scan QR Code", icon: QrCode, href: "/student/attendance", iconBg: "bg-gradient-to-br from-emerald-400 to-emerald-600", iconColor: "text-white", hover: "hover:shadow-emerald-500/25" },
+    { label: "Scan QR Code", icon: QrCode, href: "/student/attendance", iconBg: "bg-gradient-to-br from-sky-400 to-sky-600", iconColor: "text-white", hover: "hover:shadow-sky-500/25" },
     { label: "Face Attendance", icon: ScanFace, href: "/student/attendance", iconBg: "bg-gradient-to-br from-blue-400 to-blue-600", iconColor: "text-white", hover: "hover:shadow-blue-500/25" },
     { label: "Fingerprint Scan", icon: Fingerprint, href: "/student/attendance", iconBg: "bg-gradient-to-br from-purple-400 to-purple-600", iconColor: "text-white", hover: "hover:shadow-purple-500/25" },
     { label: "Download Report", icon: Download, href: "/student/attendance", iconBg: "bg-gradient-to-br from-teal-400 to-teal-600", iconColor: "text-white", hover: "hover:shadow-teal-500/25" },
@@ -278,19 +278,19 @@ export default function StudentDashboardPage() {
   return (
     <div className="space-y-6">
       {/* Welcome banner */}
-      <div className="relative overflow-hidden rounded-2xl bg-gradient-to-r from-emerald-600 via-emerald-500 to-teal-500 p-6 text-white shadow-lg shadow-emerald-500/20 sm:p-8">
+      <div className="relative overflow-hidden rounded-2xl bg-gradient-to-r from-sky-600 via-sky-500 to-teal-500 p-6 text-white shadow-lg shadow-sky-500/20 sm:p-8">
         <div className="absolute -right-10 -top-10 h-40 w-40 rounded-full bg-white/10" />
         <div className="absolute bottom-0 right-24 h-24 w-24 rounded-full bg-white/5" />
         <div className="relative flex flex-wrap items-center justify-between gap-4">
           <div>
             <h2 className="text-2xl font-bold sm:text-3xl">Welcome back, {firstName} 👋</h2>
-            <p className="mt-1.5 text-sm text-emerald-50">
+            <p className="mt-1.5 text-sm text-sky-50">
               Track your attendance, classes and academic progress in one place.
             </p>
           </div>
           <div className="flex gap-3">
             <Link href="/student/attendance">
-              <Button className="bg-white text-emerald-700 hover:bg-emerald-50">
+              <Button className="bg-white text-sky-700 hover:bg-sky-50">
                 <CheckCircle2 className="size-4" />
                 Mark Attendance
               </Button>
@@ -332,7 +332,7 @@ export default function StudentDashboardPage() {
         </Card>
 
         {[
-          { title: "Classes Attended", value: totals.present, icon: CheckCircle2, grad: "from-emerald-400 to-emerald-600", glow: "shadow-emerald-500/25" },
+          { title: "Classes Attended", value: totals.present, icon: CheckCircle2, grad: "from-sky-400 to-sky-600", glow: "shadow-sky-500/25" },
           { title: "Missed Classes", value: totals.absent + totals.late, icon: XCircle, grad: "from-red-400 to-red-600", glow: "shadow-red-500/25" },
           { title: "Registered Courses", value: enrolledCourses.length, icon: BookOpen, grad: "from-purple-400 to-purple-600", glow: "shadow-purple-500/25" },
           { title: "Today's Classes", value: todayClasses.length, icon: CalendarDays, grad: "from-amber-400 to-amber-600", glow: "shadow-amber-500/25" },
@@ -361,7 +361,7 @@ export default function StudentDashboardPage() {
               <CardTitle>Attendance Overview</CardTitle>
               <div className="flex flex-wrap gap-2">
                 {[
-                  { label: "Present", color: "bg-emerald-500" },
+                  { label: "Present", color: "bg-green-500" },
                   { label: "Late", color: "bg-amber-500" },
                   { label: "Absent", color: "bg-red-500" },
                 ].map((item) => (
@@ -389,7 +389,7 @@ export default function StudentDashboardPage() {
                       color: "hsl(var(--foreground))",
                     }}
                   />
-                  <Line type="monotone" dataKey="present" name="Present" stroke="#10B981" strokeWidth={2.5} dot={false} />
+                  <Line type="monotone" dataKey="present" name="Present" stroke="#16A34A" strokeWidth={2.5} dot={false} />
                   <Line type="monotone" dataKey="late" name="Late" stroke="#F59E0B" strokeWidth={2} dot={false} />
                   <Line type="monotone" dataKey="absent" name="Absent" stroke="#EF4444" strokeWidth={2} dot={false} />
                 </LineChart>
@@ -399,20 +399,20 @@ export default function StudentDashboardPage() {
         </Card>
 
         {/* Student profile card */}
-        <Card className="rounded-2xl border-none bg-gradient-to-b from-white to-emerald-50/50 shadow-sm">
+        <Card className="rounded-2xl border-none bg-gradient-to-b from-white to-sky-50/50 shadow-sm">
           <CardContent className="flex flex-col items-center p-6 text-center">
             <div className="relative">
-              <Avatar className="h-20 w-20 ring-4 ring-emerald-500/20">
-                <AvatarFallback className="bg-gradient-to-br from-emerald-400 to-teal-600 text-xl font-bold text-white">
+              <Avatar className="h-20 w-20 ring-4 ring-sky-500/20">
+                <AvatarFallback className="bg-gradient-to-br from-sky-400 to-teal-600 text-xl font-bold text-white">
                   {profile?.full_name?.split(" ").map((n: string) => n[0]).join("").toUpperCase().slice(0, 2) || "??"}
                 </AvatarFallback>
               </Avatar>
-              <span className="absolute -bottom-1 right-0 flex h-6 w-6 items-center justify-center rounded-full bg-emerald-500 text-white shadow-md">
+              <span className="absolute -bottom-1 right-0 flex h-6 w-6 items-center justify-center rounded-full bg-sky-500 text-white shadow-md">
                 <BadgeCheck className="size-3.5" />
               </span>
             </div>
             <p className="mt-4 text-lg font-bold text-foreground">{profile?.full_name || "Student"}</p>
-            <Badge className="mt-1.5 bg-emerald-500/10 text-emerald-600">Active Student</Badge>
+            <Badge className="mt-1.5 bg-sky-500/10 text-sky-600">Active Student</Badge>
             <div className="mt-4 w-full space-y-2 text-sm">
               <div className="flex items-center justify-between rounded-lg bg-white px-3 py-2">
                 <span className="text-muted-foreground">Student ID</span>
@@ -435,11 +435,11 @@ export default function StudentDashboardPage() {
               </div>
               <div className="flex items-center justify-between rounded-lg bg-white px-3 py-2">
                 <span className="text-muted-foreground">Attendance Rate</span>
-                <span className="font-semibold text-emerald-600">{pct}%</span>
+                <span className="font-semibold text-sky-600">{pct}%</span>
               </div>
             </div>
             <Link href="/student/profile" className="mt-5 w-full">
-              <Button className="w-full bg-emerald-500 hover:bg-emerald-600">
+              <Button className="w-full bg-sky-500 hover:bg-sky-600">
                 View Full Profile
               </Button>
             </Link>
@@ -466,13 +466,13 @@ export default function StudentDashboardPage() {
               {todayClasses.map((c) => (
                 <div
                   key={c.id}
-                  className="rounded-xl border border-border p-4 transition-all hover:border-emerald-300 hover:shadow-md"
+                  className="rounded-xl border border-border p-4 transition-all hover:border-sky-300 hover:shadow-md"
                 >
                   <div className="flex items-start justify-between">
-                    <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-emerald-500/10">
-                      <BookOpen className="size-5 text-emerald-600" />
+                    <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-sky-500/10">
+                      <BookOpen className="size-5 text-sky-600" />
                     </div>
-                    <Badge className="bg-emerald-500/10 text-emerald-600">Upcoming</Badge>
+                    <Badge className="bg-sky-500/10 text-sky-600">Upcoming</Badge>
                   </div>
                   <p className="mt-3 font-semibold text-foreground">{c.course?.name || "—"}</p>
                   <p className="text-xs text-muted-foreground">{c.course?.code || "—"}</p>
@@ -497,15 +497,15 @@ export default function StudentDashboardPage() {
         </Card>
 
         {/* Upcoming attendance session with countdown */}
-        <Card className="rounded-2xl border-none bg-gradient-to-br from-[#0F172A] to-emerald-700 text-white shadow-lg shadow-emerald-500/20">
+        <Card className="rounded-2xl border-none bg-gradient-to-br from-[#1E3A8A] to-sky-700 text-white shadow-lg shadow-sky-500/20">
           <CardHeader>
             <CardTitle className="text-white">Upcoming Attendance</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="rounded-xl bg-white/10 p-4 backdrop-blur">
-              <p className="text-sm text-emerald-100">Next Class</p>
+              <p className="text-sm text-sky-100">Next Class</p>
               <p className="mt-1 text-lg font-bold">Software Engineering</p>
-              <div className="mt-3 space-y-1.5 text-sm text-emerald-50/80">
+              <div className="mt-3 space-y-1.5 text-sm text-sky-50/80">
                 <div className="flex items-center gap-2">
                   <MapPin className="size-3.5" />
                   Room 204
@@ -517,14 +517,14 @@ export default function StudentDashboardPage() {
               </div>
             </div>
             <div className="mt-5 rounded-xl bg-white/10 p-4 text-center backdrop-blur">
-              <p className="text-xs uppercase tracking-wide text-emerald-100">Live Countdown</p>
+              <p className="text-xs uppercase tracking-wide text-sky-100">Live Countdown</p>
               <div className="mt-2 flex items-center justify-center gap-3">
                 {[hours, minutes, seconds].map((val, i) => (
                   <div key={i} className="flex flex-col items-center">
                     <span className="text-3xl font-bold tabular-nums">
                       {String(val).padStart(2, "0")}
                     </span>
-                    <span className="text-[10px] uppercase text-emerald-100/70">
+                    <span className="text-[10px] uppercase text-sky-100/70">
                       {["Hrs", "Min", "Sec"][i]}
                     </span>
                   </div>
@@ -532,7 +532,7 @@ export default function StudentDashboardPage() {
               </div>
             </div>
             <Link href="/student/attendance" className="mt-5 block">
-              <Button className="w-full bg-emerald-500 text-white hover:bg-emerald-600">
+              <Button className="w-full bg-sky-500 text-white hover:bg-sky-600">
                 <Play className="size-4" />
                 Join Attendance
               </Button>
@@ -620,7 +620,7 @@ export default function StudentDashboardPage() {
         <Card className="rounded-2xl border-none shadow-sm">
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
-              <FileText className="size-4 text-emerald-500" />
+              <FileText className="size-4 text-sky-500" />
               Recent Assignments
             </CardTitle>
           </CardHeader>
@@ -643,7 +643,7 @@ export default function StudentDashboardPage() {
         <Card className="rounded-2xl border-none shadow-sm">
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
-              <Megaphone className="size-4 text-emerald-500" />
+              <Megaphone className="size-4 text-sky-500" />
               Announcements
             </CardTitle>
           </CardHeader>
@@ -669,7 +669,7 @@ export default function StudentDashboardPage() {
         <Card className="rounded-2xl border-none shadow-sm">
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
-              <Activity className="size-4 text-emerald-500" />
+              <Activity className="size-4 text-sky-500" />
               Quick Actions
             </CardTitle>
           </CardHeader>

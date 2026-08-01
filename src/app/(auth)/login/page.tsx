@@ -157,9 +157,9 @@ export default function LoginPage() {
   return (
     <div className="flex min-h-screen bg-[#F8FAFC]">
       {/* Left branding panel */}
-      <div className="relative hidden w-[40%] overflow-hidden bg-gradient-to-br from-[#0F172A] via-[#0d2b2a] to-[#10B981] lg:block">
-        <div className="absolute -left-20 top-1/4 h-72 w-72 rounded-full bg-emerald-500/30 blur-3xl animate-[blob-move_12s_ease-in-out_infinite]" />
-        <div className="absolute right-[-60px] top-16 h-56 w-56 rounded-full bg-emerald-400/20 blur-3xl animate-[float-slow_7s_ease-in-out_infinite]" />
+      <div className="relative hidden w-[40%] overflow-hidden bg-gradient-to-br from-[#1E3A8A] via-[#1E40AF] to-[#16A34A] lg:block">
+        <div className="absolute -left-20 top-1/4 h-72 w-72 rounded-full bg-sky-500/30 blur-3xl animate-[blob-move_12s_ease-in-out_infinite]" />
+        <div className="absolute right-[-60px] top-16 h-56 w-56 rounded-full bg-sky-400/20 blur-3xl animate-[float-slow_7s_ease-in-out_infinite]" />
         <div className="absolute bottom-10 left-1/3 h-40 w-40 rounded-full bg-white/10 blur-2xl" />
 
         <div
@@ -178,18 +178,18 @@ export default function LoginPage() {
             </div>
             <div>
               <p className="text-base font-bold text-white">SAMS</p>
-              <p className="text-[11px] text-emerald-100/80">Smart Attendance Management System</p>
+              <p className="text-[11px] text-sky-100/80">Smart Attendance Management System</p>
             </div>
           </div>
 
           <div className="mt-16 xl:mt-24 space-y-6 [animation:fade-up_0.6s_ease_both]">
             <h1 className="text-4xl xl:text-5xl font-bold leading-tight text-white">
               Smart Attendance for{" "}
-              <span className="bg-gradient-to-r from-emerald-300 to-teal-200 bg-clip-text text-transparent">
+              <span className="bg-gradient-to-r from-sky-300 to-teal-200 bg-clip-text text-transparent">
                 Smarter Education
               </span>
             </h1>
-            <p className="max-w-md text-sm leading-relaxed text-emerald-50/80">
+            <p className="max-w-md text-sm leading-relaxed text-sky-50/80">
               A unified platform that helps students, lecturers, and administrators
               manage attendance securely using QR codes, Face Recognition, Fingerprint
               authentication, and real-time analytics.
@@ -205,12 +205,12 @@ export default function LoginPage() {
                   className="flex items-start gap-4 rounded-2xl border border-white/10 bg-white/10 p-4 backdrop-blur-md"
                   style={{ animation: `fade-up 0.6s ease ${0.15 + i * 0.12}s both` }}
                 >
-                  <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-emerald-500/90 shadow-lg shadow-emerald-500/30">
+                  <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-sky-500/90 shadow-lg shadow-sky-500/30">
                     <Icon className="size-5 text-white" />
                   </div>
                   <div>
                     <p className="text-sm font-semibold text-white">{f.title}</p>
-                    <p className="mt-1 text-xs leading-relaxed text-emerald-50/75">
+                    <p className="mt-1 text-xs leading-relaxed text-sky-50/75">
                       {f.points.join(" · ")}
                     </p>
                   </div>
@@ -222,11 +222,11 @@ export default function LoginPage() {
           <div className="mt-auto pt-10">
             <div className="flex items-center gap-4 rounded-2xl border border-white/15 bg-white/10 p-5 backdrop-blur-md">
               <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-white/10">
-                <Building2 className="size-5 text-emerald-300" />
+                <Building2 className="size-5 text-sky-300" />
               </div>
               <div>
                 <p className="text-sm font-semibold text-white">Trusted by Universities</p>
-                <p className="text-xs text-emerald-50/75">
+                <p className="text-xs text-sky-50/75">
                   Built for institutions that value transparency, security, and academic excellence.
                 </p>
               </div>
@@ -246,12 +246,12 @@ export default function LoginPage() {
 
         <div className="flex flex-1 items-center justify-center px-6 pb-8">
           <div className="w-full max-w-md [animation:fade-up_0.5s_ease_both]">
-            <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-gradient-to-br from-emerald-500 to-teal-600 shadow-lg shadow-emerald-500/30">
+            <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-gradient-to-br from-sky-500 to-teal-600 shadow-lg shadow-sky-500/30">
               <GraduationCap className="size-7 text-white" />
             </div>
 
             <div className="mt-5 text-center">
-              <h1 className="text-2xl font-bold text-[#0F172A]">Welcome Back!</h1>
+              <h1 className="text-2xl font-bold text-[#1E3A8A]">Welcome Back!</h1>
               <p className="mt-1 text-sm text-slate-500">Sign in to your SAMS account</p>
             </div>
 
@@ -276,7 +276,7 @@ export default function LoginPage() {
                       value={email}
                       onChange={(e) => setEmail(e.target.value)}
                       required
-                      className="h-11 w-full rounded-xl border border-slate-200 bg-white pl-10 pr-3 text-sm text-[#334155] placeholder:text-slate-400 outline-none transition focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20"
+                      className="h-11 w-full rounded-xl border border-slate-200 bg-white pl-10 pr-3 text-sm text-[#334155] placeholder:text-slate-400 outline-none transition focus:border-sky-500 focus:ring-2 focus:ring-sky-500/20"
                     />
                   </div>
                 </div>
@@ -294,7 +294,7 @@ export default function LoginPage() {
                       value={password}
                       onChange={(e) => setPassword(e.target.value)}
                       required
-                      className="h-11 w-full rounded-xl border border-slate-200 bg-white pl-10 pr-10 text-sm text-[#334155] placeholder:text-slate-400 outline-none transition focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20"
+                      className="h-11 w-full rounded-xl border border-slate-200 bg-white pl-10 pr-10 text-sm text-[#334155] placeholder:text-slate-400 outline-none transition focus:border-sky-500 focus:ring-2 focus:ring-sky-500/20"
                     />
                     <button
                       type="button"
@@ -313,14 +313,14 @@ export default function LoginPage() {
                       type="checkbox"
                       checked={rememberMe}
                       onChange={(e) => setRememberMe(e.target.checked)}
-                      className="size-4 rounded border-slate-300 text-emerald-600 accent-emerald-600"
+                      className="size-4 rounded border-slate-300 text-sky-600 accent-sky-600"
                     />
                     Remember Me
                   </label>
                   <button
                     type="button"
                     onClick={handleForgotPassword}
-                    className="text-sm font-medium text-emerald-600 transition hover:text-emerald-700 hover:underline"
+                    className="text-sm font-medium text-sky-600 transition hover:text-sky-700 hover:underline"
                   >
                     Forgot Password?
                   </button>
@@ -329,7 +329,7 @@ export default function LoginPage() {
                 <Button
                   type="submit"
                   disabled={loading}
-                  className="h-11 w-full rounded-xl bg-gradient-to-r from-emerald-500 to-teal-600 text-white font-semibold shadow-lg shadow-emerald-500/30 transition hover:from-emerald-600 hover:to-teal-700 hover:shadow-xl hover:shadow-emerald-500/40 hover:-translate-y-0.5 active:translate-y-0"
+                  className="h-11 w-full rounded-xl bg-gradient-to-r from-sky-500 to-teal-600 text-white font-semibold shadow-lg shadow-sky-500/30 transition hover:from-sky-600 hover:to-teal-700 hover:shadow-xl hover:shadow-sky-500/40 hover:-translate-y-0.5 active:translate-y-0"
                 >
                   {loading ? (
                     <span className="flex items-center gap-2">
@@ -370,7 +370,7 @@ export default function LoginPage() {
 
             <div className="mt-6 text-center text-sm text-slate-500">
               Don&apos;t have an account?{" "}
-              <Link href="/register" className="font-medium text-emerald-600 transition hover:text-emerald-700 hover:underline">
+              <Link href="/register" className="font-medium text-sky-600 transition hover:text-sky-700 hover:underline">
                 Register
               </Link>
             </div>
