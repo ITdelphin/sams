@@ -29,9 +29,15 @@ interface SidebarLink {
   icon: string;
 }
 
+interface SidebarGroup {
+  label: string;
+  links: SidebarLink[];
+}
+
 interface SidebarProps {
   links: SidebarLink[];
   role: string;
+  groups?: SidebarGroup[];
 }
 
 const iconMap: Record<string, LucideIcon> = {
@@ -52,7 +58,7 @@ const iconMap: Record<string, LucideIcon> = {
   reports: BarChart3,
 };
 
-export function Sidebar({ links, role }: SidebarProps) {
+export function Sidebar({ links, role, groups }: SidebarProps) {
   const pathname = usePathname();
   const router = useRouter();
 
@@ -60,6 +66,27 @@ export function Sidebar({ links, role }: SidebarProps) {
     const supabase = createClient();
     await supabase.auth.signOut();
     router.push("/login");
+  }
+
+  function renderLink(link: SidebarLink) {
+    const Icon = iconMap[link.icon] || LayoutDashboard;
+    const isActive =
+      pathname === link.href || pathname.startsWith(link.href + "/");
+    return (
+      <Link
+        key={link.href}
+        href={link.href}
+        className={cn(
+          "flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition-all",
+          isActive
+            ? "bg-emerald-500 text-white shadow-lg shadow-emerald-500/25"
+            : "text-slate-400 hover:bg-white/5 hover:text-white"
+        )}
+      >
+        <Icon className="size-4 shrink-0" />
+        {link.label}
+      </Link>
+    );
   }
 
   return (
@@ -75,29 +102,31 @@ export function Sidebar({ links, role }: SidebarProps) {
       </div>
 
       <nav className="flex-1 space-y-1 overflow-y-auto px-3 py-4">
-        {links.map((link) => {
-          const Icon = iconMap[link.icon] || LayoutDashboard;
-          const isActive =
-            pathname === link.href || pathname.startsWith(link.href + "/");
-          return (
-            <Link
-              key={link.href}
-              href={link.href}
-              className={cn(
-                "flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition-all",
-                isActive
-                  ? "bg-emerald-500 text-white shadow-lg shadow-emerald-500/25"
-                  : "text-slate-400 hover:bg-white/5 hover:text-white"
-              )}
-            >
-              <Icon className="size-4 shrink-0" />
-              {link.label}
-            </Link>
-          );
-        })}
+        {groups ? (
+          groups.map((group) => (
+            <div key={group.label} className="pt-3 first:pt-0">
+              <p className="px-3 pb-2 text-[10px] font-semibold uppercase tracking-wider text-slate-500">
+                {group.label}
+              </p>
+              <div className="space-y-1">{group.links.map(renderLink)}</div>
+            </div>
+          ))
+        ) : (
+          <div className="space-y-1">{links.map(renderLink)}</div>
+        )}
       </nav>
 
-      <div className="border-t border-white/10 p-4">
+      <div className="p-4">
+        <div className="mb-3 rounded-2xl border border-white/10 bg-white/5 p-4">
+          <div className="flex items-center gap-2">
+            <span className="relative flex size-2">
+              <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-400 opacity-75" />
+              <span className="relative inline-flex size-2 rounded-full bg-emerald-500" />
+            </span>
+            <p className="text-sm font-medium text-white">System Status</p>
+          </div>
+          <p className="mt-1 text-xs text-emerald-300">All Systems Operational</p>
+        </div>
         <button
           onClick={handleLogout}
           className="flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium text-slate-400 transition-all hover:bg-red-500/10 hover:text-red-400"

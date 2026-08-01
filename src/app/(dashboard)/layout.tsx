@@ -20,6 +20,36 @@ const adminLinks = [
   { label: "Settings", href: "/admin/settings", icon: "settings" },
 ];
 
+const adminGroups = [
+  {
+    label: "Overview",
+    links: [{ label: "Dashboard", href: "/admin", icon: "dashboard" }],
+  },
+  {
+    label: "User Management",
+    links: [
+      { label: "Students", href: "/admin/students", icon: "students" },
+      { label: "Lecturers", href: "/admin/lecturers", icon: "lecturers" },
+      { label: "Departments", href: "/admin/departments", icon: "departments" },
+      { label: "Courses", href: "/admin/courses", icon: "courses" },
+      { label: "Faculties", href: "/admin/faculties", icon: "faculties" },
+      { label: "Classes", href: "/admin/classes", icon: "classes" },
+      { label: "Academic Years", href: "/admin/academic-years", icon: "years" },
+    ],
+  },
+  {
+    label: "Attendance",
+    links: [{ label: "Attendance Overview", href: "/admin/attendance", icon: "attendance" }],
+  },
+  {
+    label: "System",
+    links: [
+      { label: "Settings", href: "/admin/settings", icon: "settings" },
+      { label: "Audit Logs", href: "/admin/audit-log", icon: "audit" },
+    ],
+  },
+];
+
 const lecturerLinks = [
   { label: "Dashboard", href: "/lecturer", icon: "dashboard" },
   { label: "My Courses", href: "/lecturer/courses", icon: "courses" },
@@ -88,7 +118,11 @@ export default function DashboardLayout({
 
   return (
     <div className="flex min-h-screen bg-background">
-      <Sidebar links={links} role={role} />
+      <Sidebar
+        links={links}
+        role={role}
+        groups={role === "super_admin" ? adminGroups : undefined}
+      />
       <div className="flex flex-1 flex-col">
         <Navbar role={role} links={links} />
         <main className="flex-1 p-4 lg:p-6">{children}</main>
