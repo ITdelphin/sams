@@ -1,0 +1,55 @@
+﻿Γû▓ Next.js 16.2.12 (Turbopack)
+- Environments: .env.local
+
+  Creating an optimized production build ...
+Γ£ô Compiled successfully in 75s
+  Skipping validation of types
+  Finished TypeScript config validation in 128ms ...
+  Collecting page data using 3 workers ...
+  Generating static pages using 3 workers (0/35) ...
+  Generating static pages using 3 workers (8/35) 
+  Generating static pages using 3 workers (17/35) 
+  Generating static pages using 3 workers (26/35) 
+Γ£ô Generating static pages using 3 workers (35/35) in 4.5s
+  Finalizing page optimization ...
+
+Route (app)
+Γöî Γùï /
+Γö£ Γùï /_not-found
+Γö£ Γùï /admin
+Γö£ Γùï /admin/academic-years
+Γö£ Γùï /admin/attendance
+Γö£ Γùï /admin/audit-log
+Γö£ Γùï /admin/classes
+Γö£ Γùï /admin/course-assignments
+Γö£ Γùï /admin/courses
+Γö£ Γùï /admin/departments
+Γö£ Γùï /admin/faculties
+Γö£ Γùï /admin/import-students
+Γö£ Γùï /admin/lecturers
+Γö£ Γùï /admin/programs
+Γö£ Γùï /admin/settings
+Γö£ Γùï /admin/students
+Γö£ Γùï /admin/timetable
+Γö£ Γùï /change-password
+Γö£ Γùï /forgot-password
+Γö£ Γùï /lecturer
+Γö£ Γùï /lecturer/attendance
+Γö£ Γùï /lecturer/attendance/mark
+Γö£ Γùï /lecturer/courses
+Γö£ Γùï /lecturer/profile
+Γö£ Γùï /lecturer/sessions
+Γö£ Γùï /login
+Γö£ Γùï /pending
+Γö£ Γùï /register
+Γö£ Γùï /reset-password
+Γö£ Γùï /student
+Γö£ Γùï /student/attendance
+Γö£ Γùï /student/courses
+Γöö Γùï /student/profile
+
+
+╞Æ Proxy (Middleware)
+
+Γùï  (Static)  prerendered as static content
+

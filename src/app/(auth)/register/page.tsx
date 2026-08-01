@@ -11,7 +11,6 @@ import {
   Card,
   CardContent,
   CardDescription,
-  CardHeader,
   CardTitle,
 } from "@/components/ui/card";
 import {
@@ -21,7 +20,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { toast } from "sonner";
 import { Eye, EyeOff, CheckCircle2, Loader2 } from "lucide-react";
@@ -39,6 +37,11 @@ type ClassItem = {
   program_id: string;
   academic_year_id: string | null;
   semester_id: string | null;
+};
+type ImportedStudent = {
+  id?: string;
+  full_name?: string;
+  registration_number?: string;
 };
 
 const EMPTY_FORM = {
@@ -66,7 +69,7 @@ export default function RegisterPage() {
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [checkingReg, setCheckingReg] = useState(false);
-  const [regMatch, setRegMatch] = useState<any | null>(null);
+  const [regMatch, setRegMatch] = useState<ImportedStudent | null>(null);
 
   const [faculties, setFaculties] = useState<Faculty[]>([]);
   const [departments, setDepartments] = useState<Department[]>([]);
@@ -677,9 +680,8 @@ export default function RegisterPage() {
                     ].map(([label, ok]) => (
                       <div
                         key={label as string}
-                        className={`flex items-center gap-1.5 text-xs ${
-                          ok ? "text-green-600" : "text-muted-foreground"
-                        }`}
+                        className={`flex items-center gap-1.5 text-xs ${ok ? "text-green-600" : "text-muted-foreground"
+                          }`}
                       >
                         <CheckCircle2 className="size-3.5" />
                         {label}

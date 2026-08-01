@@ -101,8 +101,17 @@ function getInitials(name?: string | null): string {
   );
 }
 
-function buildWeekData(records: any[]): any[] {
-  const days: { key: string; name: string; present: number; absent: number; late: number; excused: number }[] = [];
+type WeekData = {
+  key: string;
+  name: string;
+  present: number;
+  absent: number;
+  late: number;
+  excused: number;
+};
+
+function buildWeekData(records: Record[]): WeekData[] {
+  const days: WeekData[] = [];
   const today = new Date();
   today.setHours(0, 0, 0, 0);
   for (let i = 6; i >= 0; i--) {
@@ -132,7 +141,7 @@ function buildWeekData(records: any[]): any[] {
   return days;
 }
 
-const fallbackWeek = [
+const fallbackWeek: WeekData[] = [
   { key: "", name: "Mon", present: 42, absent: 2, late: 4, excused: 1 },
   { key: "", name: "Tue", present: 38, absent: 3, late: 6, excused: 2 },
   { key: "", name: "Wed", present: 45, absent: 1, late: 3, excused: 0 },
@@ -197,14 +206,18 @@ const quickActions = [
   { label: "Export Data", icon: Download, href: "/lecturer/attendance", iconBg: "bg-teal-500/10", iconColor: "text-teal-600 dark:text-teal-400", hover: "hover:shadow-teal-500/20" },
 ];
 
+type CourseData = { id: string; name: string; code: string; departments: { name: string } | null };
+type ClassData = { id: string; name: string; section: string; year: string; schedule: string; room: string; courses: { name: string; code: string; lecturer_id: string } | null };
+type NotificationData = { id: string; title: string; message: string; type: string; created_at: string; is_read: boolean };
+
 export default function LecturerDashboardPage() {
   const [profile, setProfile] = useState<{ full_name: string; role: string } | null>(null);
-  const [courses, setCourses] = useState<any[]>([]);
-  const [todayClasses, setTodayClasses] = useState<any[]>([]);
+  const [courses, setCourses] = useState<CourseData[]>([]);
+  const [todayClasses, setTodayClasses] = useState<ClassData[]>([]);
   const [totalStudents, setTotalStudents] = useState(0);
   const [recentRecords, setRecentRecords] = useState<Record[]>([]);
-  const [notifications, setNotifications] = useState<any[]>([]);
-  const [weekData, setWeekData] = useState<any[]>([]);
+  const [notifications, setNotifications] = useState<NotificationData[]>([]);
+  const [weekData, setWeekData] = useState<WeekData[]>([]);
   const [hasRealData, setHasRealData] = useState(false);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -236,12 +249,12 @@ export default function LecturerDashboardPage() {
             .limit(5),
         ]);
 
-        setProfile((profileRes.data as any) || null);
-        const myCourses = (coursesRes.data as any[]) || [];
+        setProfile((profileRes.data as { full_name: string; role: string }) || null);
+        const myCourses = (coursesRes.data as CourseData[]) || [];
         setCourses(myCourses);
-        setNotifications((notifsRes.data as any[]) || []);
+        setNotifications((notifsRes.data as NotificationData[]) || []);
 
-        const myClasses = ((classesRes.data as any[]) || []).filter(
+        const myClasses = ((classesRes.data as unknown as ClassData[]) || []).filter(
           (c) => c.courses?.lecturer_id === userId
         );
         setTodayClasses(myClasses.slice(0, 3));
@@ -268,7 +281,7 @@ export default function LecturerDashboardPage() {
         setTotalStudents(enrollRes?.count || 0);
 
         const realRecords = (recordsRes.data as Record[]) || [];
-        const realWeek = buildWeekData((weekRes.data as any[]) || []);
+        const realWeek = buildWeekData((weekRes.data as unknown as Record[]) || []);
         const hasWeek = realWeek.some(
           (d) => d.present + d.absent + d.late + d.excused > 0
         );

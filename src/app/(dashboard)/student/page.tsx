@@ -118,8 +118,43 @@ function getStatusInfo(status: string): { label: string; className: string } {
   }
 }
 
-function buildWeekData(records: any[]): any[] {
-  const days: any[] = [];
+type WeekData = {
+  key: string;
+  name: string;
+  present: number;
+  late: number;
+  absent: number;
+};
+
+type AttendanceRecord = {
+  id?: string;
+  marked_at: string;
+  status: string;
+  session?: {
+    method?: string;
+    started_at?: string;
+    courses?: { name?: string; code?: string; };
+    lecturer?: { full_name?: string; };
+  };
+};
+
+type StudentProfile = {
+  full_name?: string;
+  student_id?: string;
+  faculties?: { name: string };
+  departments?: { name: string };
+};
+
+type ClassData = {
+  id: string;
+  course_id?: string;
+  schedule?: string;
+  room?: string;
+  course?: { name?: string; code?: string; lecturer?: { full_name?: string } };
+};
+
+function buildWeekData(records: AttendanceRecord[]): WeekData[] {
+  const days: WeekData[] = [];
   const today = new Date();
   today.setHours(0, 0, 0, 0);
   for (let i = 6; i >= 0; i--) {
@@ -140,7 +175,7 @@ function buildWeekData(records: any[]): any[] {
     const diff = Math.round((today.getTime() - d.getTime()) / 86400000);
     const idx = 6 - diff;
     if (idx < 0 || idx >= 7) return;
-    const status = (r.status as string).toLowerCase();
+    const status = r.status.toLowerCase() as "present" | "late" | "absent" | "excused";
     if (status === "present" || status === "late" || status === "absent") {
       days[idx][status] += 1;
     }
@@ -149,11 +184,11 @@ function buildWeekData(records: any[]): any[] {
 }
 
 export default function StudentDashboardPage() {
-  const [profile, setProfile] = useState<any>(null);
-  const [enrolledCourses, setEnrolledCourses] = useState<any[]>([]);
-  const [todayClasses, setTodayClasses] = useState<any[]>([]);
-  const [recentRecords, setRecentRecords] = useState<any[]>([]);
-  const [weekData, setWeekData] = useState<any[]>([]);
+  const [profile, setProfile] = useState<StudentProfile | null>(null);
+  const [enrolledCourses, setEnrolledCourses] = useState<{ course_id: string }[]>([]);
+  const [todayClasses, setTodayClasses] = useState<ClassData[]>([]);
+  const [recentRecords, setRecentRecords] = useState<AttendanceRecord[]>([]);
+  const [weekData, setWeekData] = useState<WeekData[]>([]);
   const [hasRealData, setHasRealData] = useState(false);
   const [loading, setLoading] = useState(true);
   const [now, setNow] = useState(new Date());
@@ -193,25 +228,25 @@ export default function StudentDashboardPage() {
           .limit(10),
         supabase
           .from("classes")
-          .select("id, schedule, room, course:courses(name, code, lecturer:profiles(full_name))"),
+          .select("id, course_id, schedule, room, course:courses(name, code, lecturer:profiles(full_name))"),
       ]);
 
-      setProfile(profileRes.data || null);
-      const enrollments = (enrollRes.data as any[]) || [];
+      setProfile(profileRes.data as StudentProfile | null);
+      const enrollments = (enrollRes.data as { course_id: string }[]) || [];
       setEnrolledCourses(enrollments);
 
       const courseIds = enrollments.map((e) => e.course_id);
-      const myClasses = ((classesRes.data as any[]) || []).filter((c) =>
-        courseIds.includes(c.course_id)
+      const myClasses = ((classesRes.data as ClassData[]) || []).filter((c) =>
+        c.course_id && courseIds.includes(c.course_id)
       );
-      setTodayClasses(myClasses.length > 0 ? myClasses.slice(0, 4) : fallbackClasses);
+      setTodayClasses(myClasses.length > 0 ? myClasses.slice(0, 4) : Object.assign(fallbackClasses));
 
-      const realRecords = (recordsRes.data as any[]) || [];
-      setRecentRecords(realRecords.length > 0 ? realRecords : fallbackRecords);
+      const realRecords = (recordsRes.data as unknown as AttendanceRecord[]) || [];
+      setRecentRecords(realRecords.length > 0 ? realRecords : Object.assign(fallbackRecords));
 
       const realWeek = buildWeekData(realRecords);
       const hasWeek = realWeek.some((d) => d.present + d.late + d.absent > 0);
-      setWeekData(hasWeek ? realWeek : fallbackWeek);
+      setWeekData(hasWeek ? realWeek : Object.assign(fallbackWeek));
       setHasRealData(hasWeek);
 
       setLoading(false);

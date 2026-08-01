@@ -110,9 +110,9 @@ export default function StudentCoursesPage() {
         .map((a) => a.courses?.id)
         .filter((id): id is string => !!id);
 
-      let sessionMap: Record<string, number> = {};
-      let presentMap: Record<string, number> = {};
-      let lateMap: Record<string, number> = {};
+      const sessionMap: Record<string, number> = {};
+      const presentMap: Record<string, number> = {};
+      const lateMap: Record<string, number> = {};
 
       if (courseIds.length > 0) {
         const { data: sessions } = await supabase
@@ -197,16 +197,16 @@ export default function StudentCoursesPage() {
     const avgAttendance =
       courses.length > 0
         ? Math.round(
-            courses.reduce(
-              (sum, c) =>
-                sum +
-                calculateAttendancePercentage(
-                  c.present_count + c.late_count,
-                  c.total_sessions
-                ),
-              0
-            ) / courses.length
-          )
+          courses.reduce(
+            (sum, c) =>
+              sum +
+              calculateAttendancePercentage(
+                c.present_count + c.late_count,
+                c.total_sessions
+              ),
+            0
+          ) / courses.length
+        )
         : 0;
     return { totalCourses, totalCredits, avgAttendance };
   }, [courses]);

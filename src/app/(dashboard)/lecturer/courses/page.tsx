@@ -6,8 +6,17 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 
+type Course = {
+  id: string;
+  name: string;
+  code: string;
+  credits: number;
+  departmentName: string;
+  enrolledCount: number;
+};
+
 export default function LecturerCoursesPage() {
-  const [courses, setCourses] = useState<any[]>([]);
+  const [courses, setCourses] = useState<Course[]>([]);
   const [search, setSearch] = useState("");
   const [loading, setLoading] = useState(true);
 

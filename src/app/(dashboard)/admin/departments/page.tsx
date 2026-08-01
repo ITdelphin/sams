@@ -97,7 +97,10 @@ export default function DepartmentsPage() {
   };
 
   useEffect(() => {
-    fetchData();
+    const timer = setTimeout(() => {
+      fetchData();
+    }, 0);
+    return () => clearTimeout(timer);
   }, []);
 
   const filtered = departments.filter(

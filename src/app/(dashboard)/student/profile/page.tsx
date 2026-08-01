@@ -12,7 +12,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { formatDate, getStatusColor, getRoleLabel } from "@/lib/utils";
+import { formatDate, getRoleLabel } from "@/lib/utils";
 import { toast } from "sonner";
 import Link from "next/link";
 import {
@@ -174,10 +174,10 @@ export default function StudentProfilePage() {
     setProfile((prev) =>
       prev
         ? {
-            ...prev,
-            full_name: editForm.full_name.trim(),
-            phone_number: editForm.phone_number.trim() || null,
-          }
+          ...prev,
+          full_name: editForm.full_name.trim(),
+          phone_number: editForm.phone_number.trim() || null,
+        }
         : prev
     );
     setEditing(false);

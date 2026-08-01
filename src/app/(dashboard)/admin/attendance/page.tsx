@@ -77,11 +77,7 @@ export default function AdminAttendancePage() {
 
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    loadFaculties();
-  }, []);
-
-  async function loadFaculties() {
+  const loadFaculties = async () => {
     setLoading(true);
     const supabase = createClient();
     const { data: facs } = await supabase.from("faculties").select("*").order("name");
@@ -98,7 +94,11 @@ export default function AdminAttendancePage() {
 
     setFaculties(facultiesWithCounts);
     setLoading(false);
-  }
+  };
+
+  useEffect(() => {
+    loadFaculties();
+  }, []);
 
   async function loadDepartments(faculty: Faculty) {
     setLoading(true);

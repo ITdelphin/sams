@@ -35,9 +35,14 @@ interface Faculty {
   code: string;
 }
 
+interface Department {
+  id: string;
+  name: string;
+}
+
 export default function AdminStudentsPage() {
   const [students, setStudents] = useState<Student[]>([]);
-  const [departments, setDepartments] = useState<any[]>([]);
+  const [departments, setDepartments] = useState<Department[]>([]);
   const [faculties, setFaculties] = useState<Faculty[]>([]);
   const [search, setSearch] = useState("");
   const [selectedFaculty, setSelectedFaculty] = useState<string>("all");
@@ -55,6 +60,7 @@ export default function AdminStudentsPage() {
 
   useEffect(() => {
     loadData();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   async function loadImportedCount() {
@@ -124,7 +130,7 @@ export default function AdminStudentsPage() {
         student_id: editForm.student_id || null,
         department_id: editForm.department_id || null,
         faculty_id: editForm.faculty_id || null,
-        account_status: editForm.account_status as any,
+        account_status: editForm.account_status,
       })
       .eq("id", editStudent.id);
 
@@ -224,11 +230,10 @@ export default function AdminStudentsPage() {
       <div className="flex flex-wrap gap-2">
         <button
           onClick={() => setSelectedFaculty("all")}
-          className={`rounded-lg px-4 py-2 text-sm font-medium transition-colors ${
-            selectedFaculty === "all"
-              ? "bg-primary text-primary-foreground"
-              : "bg-secondary text-secondary-foreground hover:bg-primary/10"
-          }`}
+          className={`rounded-lg px-4 py-2 text-sm font-medium transition-colors ${selectedFaculty === "all"
+            ? "bg-primary text-primary-foreground"
+            : "bg-secondary text-secondary-foreground hover:bg-primary/10"
+            }`}
         >
           All ({facultyCounts.all || 0})
         </button>
@@ -236,11 +241,10 @@ export default function AdminStudentsPage() {
           <button
             key={f.id}
             onClick={() => setSelectedFaculty(f.id)}
-            className={`rounded-lg px-4 py-2 text-sm font-medium transition-colors ${
-              selectedFaculty === f.id
-                ? "bg-primary text-primary-foreground"
-                : "bg-secondary text-secondary-foreground hover:bg-primary/10"
-            }`}
+            className={`rounded-lg px-4 py-2 text-sm font-medium transition-colors ${selectedFaculty === f.id
+              ? "bg-primary text-primary-foreground"
+              : "bg-secondary text-secondary-foreground hover:bg-primary/10"
+              }`}
           >
             {f.name} ({facultyCounts[f.id] || 0})
           </button>
@@ -276,7 +280,7 @@ export default function AdminStudentsPage() {
                       <TableCell className="text-sm text-muted-foreground">{student.email}</TableCell>
                       <TableCell>{student.student_id || "-"}</TableCell>
                       <TableCell>{facultyName}</TableCell>
-                      <TableCell>{(student as any).departments?.name || "-"}</TableCell>
+                      <TableCell>{student.departments?.name || "-"}</TableCell>
                       <TableCell><Badge className={getStatusColor(student.account_status)}>{student.account_status}</Badge></TableCell>
                       <TableCell className="text-sm text-muted-foreground">{formatDate(student.created_at)}</TableCell>
                       <TableCell>

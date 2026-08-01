@@ -2,7 +2,7 @@
 
 import { useEffect, useState, useMemo } from "react";
 import { createClient } from "@/lib/supabase/client";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -12,9 +12,32 @@ import { formatDate, getStatusColor, calculateAttendancePercentage } from "@/lib
 import { toast } from "sonner";
 import { exportAttendancePDF, exportAttendanceExcel } from "@/lib/reports";
 
+type Course = {
+  id: string;
+  name: string;
+  code: string;
+};
+
+type AttendanceRecord = {
+  id: string;
+  status: string;
+  marked_at: string;
+  profiles: {
+    full_name: string;
+    student_id: string | null;
+  } | null;
+  attendance_sessions: {
+    started_at: string;
+    courses: {
+      name: string;
+      code: string;
+    } | null;
+  } | null;
+};
+
 export default function LecturerAttendancePage() {
-  const [records, setRecords] = useState<any[]>([]);
-  const [courses, setCourses] = useState<any[]>([]);
+  const [records, setRecords] = useState<AttendanceRecord[]>([]);
+  const [courses, setCourses] = useState<Course[]>([]);
   const [search, setSearch] = useState("");
   const [filterCourse, setFilterCourse] = useState("all");
   const [filterStatus, setFilterStatus] = useState("all");
@@ -46,7 +69,7 @@ export default function LecturerAttendancePage() {
         .in("session_id", sessionIds)
         .order("created_at", { ascending: false });
 
-      setRecords(recs || []);
+      setRecords((recs as unknown as AttendanceRecord[]) || []);
       setLoading(false);
     }
     load();
@@ -55,10 +78,10 @@ export default function LecturerAttendancePage() {
   const filtered = useMemo(() => {
     const q = search.toLowerCase();
     return records.filter((r) => {
-      const studentName = (r as any).profiles?.full_name?.toLowerCase() || "";
-      const courseName = (r as any).attendance_sessions?.courses?.name?.toLowerCase() || "";
+      const studentName = r.profiles?.full_name?.toLowerCase() || "";
+      const courseName = r.attendance_sessions?.courses?.name?.toLowerCase() || "";
       const matchesSearch = !q || studentName.includes(q) || courseName.includes(q);
-      const matchesCourse = filterCourse === "all" || (r as any).attendance_sessions?.courses?.code === filterCourse;
+      const matchesCourse = filterCourse === "all" || r.attendance_sessions?.courses?.code === filterCourse;
       const matchesStatus = filterStatus === "all" || r.status === filterStatus;
       return matchesSearch && matchesCourse && matchesStatus;
     });
@@ -166,9 +189,9 @@ export default function LecturerAttendancePage() {
               ) : (
                 filtered.map((r) => (
                   <TableRow key={r.id}>
-                    <TableCell className="font-medium">{(r as any).profiles?.full_name || "N/A"}</TableCell>
-                    <TableCell>{(r as any).attendance_sessions?.courses?.name || "N/A"}</TableCell>
-                    <TableCell className="text-sm text-muted-foreground">{formatDate((r as any).attendance_sessions?.started_at)}</TableCell>
+                    <TableCell className="font-medium">{r.profiles?.full_name || "N/A"}</TableCell>
+                    <TableCell>{r.attendance_sessions?.courses?.name || "N/A"}</TableCell>
+                    <TableCell className="text-sm text-muted-foreground">{formatDate(r.attendance_sessions?.started_at)}</TableCell>
                     <TableCell><Badge className={getStatusColor(r.status)}>{r.status}</Badge></TableCell>
                     <TableCell className="text-sm text-muted-foreground">{formatDate(r.marked_at)}</TableCell>
                   </TableRow>

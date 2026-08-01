@@ -10,11 +10,25 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Separator } from "@/components/ui/separator";
 import { QRCodeSVG } from "qrcode.react";
 import { generateQRCode, formatDateTime } from "@/lib/utils";
 import { toast } from "sonner";
 import { RotateCw, Clock, Copy, ClipboardList } from "lucide-react";
+
+type CourseData = { id: string; name: string; code: string; };
+type SessionData = {
+  id: string;
+  course_id: string;
+  lecturer_id: string;
+  method: string;
+  qr_code: string | null;
+  qr_expires_at: string | null;
+  is_active: boolean;
+  started_at: string;
+  ended_at: string | null;
+  courses: { name: string; code: string; } | null;
+  attendance_records: { id: string }[] | null;
+};
 
 const METHOD_LABELS: Record<string, string> = {
   manual: "Manual",
@@ -33,7 +47,7 @@ function QRCodeDisplay({
   refreshCount,
   onManualRefresh,
 }: {
-  session: any;
+  session: SessionData;
   refreshCount: number;
   onManualRefresh: () => void;
 }) {
@@ -42,7 +56,7 @@ function QRCodeDisplay({
   useEffect(() => {
     if (!session.qr_expires_at) return;
     const tick = () => {
-      const remaining = Math.max(0, Math.round((new Date(session.qr_expires_at).getTime() - Date.now()) / 1000));
+      const remaining = Math.max(0, Math.round((new Date(session.qr_expires_at as string).getTime() - Date.now()) / 1000));
       setSecondsLeft(remaining);
     };
     tick();
@@ -66,7 +80,7 @@ function QRCodeDisplay({
 
       <div className="rounded-lg bg-white p-3 shadow-sm">
         <QRCodeSVG
-          value={session.qr_code}
+          value={session.qr_code || ""}
           size={160}
           key={`${session.id}-${refreshCount}`}
           level="H"
@@ -84,8 +98,10 @@ function QRCodeDisplay({
             variant="ghost"
             className="h-6 w-6 shrink-0"
             onClick={() => {
-              navigator.clipboard?.writeText(session.qr_code);
-              toast.success("Token copied!");
+              if (session.qr_code) {
+                navigator.clipboard?.writeText(session.qr_code);
+                toast.success("Token copied!");
+              }
             }}
           >
             <Copy className="size-3" />
@@ -109,12 +125,10 @@ function QRCodeDisplay({
   );
 }
 
-
-
 export default function LecturerSessionsPage() {
   const [userId, setUserId] = useState("");
-  const [courses, setCourses] = useState<any[]>([]);
-  const [sessions, setSessions] = useState<any[]>([]);
+  const [courses, setCourses] = useState<CourseData[]>([]);
+  const [sessions, setSessions] = useState<SessionData[]>([]);
   const [showNew, setShowNew] = useState(false);
   const [newCourse, setNewCourse] = useState("");
   const [newMethod, setNewMethod] = useState("qr_code");
@@ -125,8 +139,9 @@ export default function LecturerSessionsPage() {
 
   useEffect(() => {
     loadData();
+    const currentRefs = timeoutRefs.current;
     return () => {
-      Object.values(timeoutRefs.current).forEach(clearTimeout);
+      Object.values(currentRefs).forEach(clearTimeout);
     };
   }, []);
 
@@ -188,7 +203,7 @@ export default function LecturerSessionsPage() {
     const { error } = await supabase.from("attendance_sessions").insert({
       course_id: newCourse,
       lecturer_id: userId,
-      method: newMethod as any,
+      method: newMethod,
       qr_code: qrCode,
       qr_expires_at: qrExpires,
     });

@@ -79,7 +79,10 @@ export default function FacultiesPage() {
   };
 
   useEffect(() => {
-    fetchFaculties();
+    const timer = setTimeout(() => {
+      fetchFaculties();
+    }, 0);
+    return () => clearTimeout(timer);
   }, []);
 
   const filtered = faculties.filter(

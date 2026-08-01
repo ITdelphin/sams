@@ -13,8 +13,21 @@ import { formatDate, getStatusColor, getRoleLabel } from "@/lib/utils";
 import { toast } from "sonner";
 import Link from "next/link";
 
+type ProfileData = {
+  id: string;
+  email: string;
+  full_name: string;
+  phone_number: string | null;
+  national_id: string | null;
+  account_status: string;
+  role: string;
+  created_at: string;
+  departments: { name: string } | null;
+  faculties: { name: string } | null;
+};
+
 export default function LecturerProfilePage() {
-  const [profile, setProfile] = useState<any>(null);
+  const [profile, setProfile] = useState<ProfileData | null>(null);
   const [editing, setEditing] = useState(false);
   const [form, setForm] = useState({ full_name: "", phone_number: "" });
   const [loading, setLoading] = useState(true);
@@ -32,7 +45,7 @@ export default function LecturerProfilePage() {
         .eq("id", user.id)
         .single();
 
-      setProfile(data);
+      setProfile(data as ProfileData);
       setForm({ full_name: data?.full_name || "", phone_number: data?.phone_number || "" });
       setLoading(false);
     }
@@ -40,6 +53,7 @@ export default function LecturerProfilePage() {
   }, []);
 
   async function handleSave() {
+    if (!profile) return;
     setSaving(true);
     const supabase = createClient();
     const { error } = await supabase
@@ -79,8 +93,8 @@ export default function LecturerProfilePage() {
             </Avatar>
             <h2 className="text-lg font-semibold">{profile?.full_name}</h2>
             <p className="text-sm text-muted-foreground">{profile?.email}</p>
-            <Badge className={`mt-2 ${getStatusColor(profile?.account_status)}`}>{profile?.account_status}</Badge>
-            <Badge variant="outline" className="mt-1">{getRoleLabel(profile?.role)}</Badge>
+            <Badge className={`mt-2 ${getStatusColor(profile?.account_status || "")}`}>{profile?.account_status}</Badge>
+            <Badge variant="outline" className="mt-1">{getRoleLabel(profile?.role || "lecturer")}</Badge>
             <p className="mt-4 text-xs text-muted-foreground">Member since {formatDate(profile?.created_at)}</p>
           </CardContent>
         </Card>
@@ -92,7 +106,7 @@ export default function LecturerProfilePage() {
               <Button variant="outline" onClick={() => setEditing(true)}>Edit Profile</Button>
             ) : (
               <div className="flex gap-2">
-                <Button variant="outline" onClick={() => { setEditing(false); setForm({ full_name: profile.full_name, phone_number: profile.phone_number || "" }); }}>Cancel</Button>
+                <Button variant="outline" onClick={() => { setEditing(false); setForm({ full_name: profile?.full_name || "", phone_number: profile?.phone_number || "" }); }}>Cancel</Button>
                 <Button onClick={handleSave} disabled={saving}>{saving ? "Saving..." : "Save Changes"}</Button>
               </div>
             )}
@@ -128,11 +142,11 @@ export default function LecturerProfilePage() {
             <div className="grid gap-4 sm:grid-cols-2">
               <div className="space-y-2">
                 <Label>Department</Label>
-                <p className="text-sm">{(profile as any)?.departments?.name || "Not assigned"}</p>
+                <p className="text-sm">{profile?.departments?.name || "Not assigned"}</p>
               </div>
               <div className="space-y-2">
                 <Label>Faculty</Label>
-                <p className="text-sm">{(profile as any)?.faculties?.name || "Not assigned"}</p>
+                <p className="text-sm">{profile?.faculties?.name || "Not assigned"}</p>
               </div>
             </div>
           </CardContent>

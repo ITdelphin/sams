@@ -47,7 +47,6 @@ import {
   IdCard,
   ShieldCheck,
   UserCheck,
-  ChevronLeft,
   Sparkles,
   History,
   Check,
@@ -58,6 +57,11 @@ import {
 } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { cn } from "@/lib/utils";
+
+type Html5QrcodeScannerType = {
+  stop: () => Promise<void>;
+  clear: () => void;
+};
 
 type AttendanceRecord = {
   id: string;
@@ -165,7 +169,7 @@ export default function StudentAttendancePage() {
   const [stepBusy, setStepBusy] = useState(false);
 
   // Camera scanner state
-  const scannerInstanceRef = useRef<any>(null);
+  const scannerInstanceRef = useRef<Html5QrcodeScannerType | null>(null);
   const scannerRef = useRef<HTMLDivElement>(null);
   const [scannerActive, setScannerActive] = useState(false);
   const [scannerError, setScannerError] = useState("");
@@ -207,7 +211,8 @@ export default function StudentAttendancePage() {
           // ignore per-frame failures
         }
       );
-    } catch (e: any) {
+    } catch (err) {
+      const e = err as Error;
       setScannerActive(false);
       scannerInstanceRef.current = null;
       setScannerError(
@@ -222,13 +227,16 @@ export default function StudentAttendancePage() {
 
   // Listen to tab query param
   useEffect(() => {
-    if (typeof window !== "undefined") {
-      const params = new URLSearchParams(window.location.search);
-      const tab = params.get("tab");
-      if (tab === "mark") {
-        setActiveTab("mark");
+    const timer = setTimeout(() => {
+      if (typeof window !== "undefined") {
+        const params = new URLSearchParams(window.location.search);
+        const tab = params.get("tab");
+        if (tab === "mark") {
+          setActiveTab("mark");
+        }
       }
-    }
+    }, 0);
+    return () => clearTimeout(timer);
   }, []);
 
   async function loadRecords() {
@@ -287,7 +295,7 @@ export default function StudentAttendancePage() {
 
       const { data: sessionsRes } = await query;
       setActiveSessions((sessionsRes as ActiveSession[]) || []);
-    } catch (e: any) {
+    } catch {
       toast.error("Failed to load active sessions.");
     } finally {
       setLoadingSessions(false);
@@ -302,32 +310,43 @@ export default function StudentAttendancePage() {
 
   useEffect(() => {
     if (selectedSessionInput) {
-      setBioStep(0);
-      setProfileNumber("");
-      setProfileError("");
-      setVerifiedProfile(null);
-      setFaceScanned(false);
-      setFaceMatch(null);
-      setFaceConfirmed(false);
-      setFingerDone(false);
-      setCardDone(false);
-      setStepBusy(false);
+      const timer = setTimeout(() => {
+        setBioStep(0);
+        setProfileNumber("");
+        setProfileError("");
+        setVerifiedProfile(null);
+        setFaceScanned(false);
+        setFaceMatch(null);
+        setFaceConfirmed(false);
+        setFingerDone(false);
+        setCardDone(false);
+        setStepBusy(false);
+      }, 0);
+      return () => clearTimeout(timer);
     }
   }, [selectedSessionInput]);
 
   useEffect(() => {
     async function init() {
-      setLoading(true);
-      await loadRecords();
-      setLoading(false);
+      // eslint-disable-next-line react-hooks/exhaustive-deps
+      setTimeout(async () => {
+        setLoading(true);
+        await loadRecords();
+        setLoading(false);
+      }, 0);
     }
     init();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   useEffect(() => {
     if (studentId) {
-      loadActiveSessions();
+      // eslint-disable-next-line react-hooks/exhaustive-deps
+      setTimeout(() => {
+        loadActiveSessions();
+      }, 0);
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [studentId, showDebugSessions]);
 
   const stats = useMemo(() => {

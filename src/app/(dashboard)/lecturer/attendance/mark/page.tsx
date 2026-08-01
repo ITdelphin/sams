@@ -29,10 +29,23 @@ type EnrolledStudent = {
   status: Status | null;
 };
 
+type Session = {
+  id: string;
+  course_id: string;
+  lecturer_id: string;
+  method: string;
+  started_at: string;
+  is_active: boolean;
+  courses: {
+    name: string;
+    code: string;
+  } | null;
+};
+
 export default function LecturerMarkAttendancePage() {
   const router = useRouter();
   const [userId, setUserId] = useState("");
-  const [sessions, setSessions] = useState<any[]>([]);
+  const [sessions, setSessions] = useState<Session[]>([]);
   const [selectedSessionId, setSelectedSessionId] = useState("");
   const [students, setStudents] = useState<EnrolledStudent[]>([]);
   const [search, setSearch] = useState("");
@@ -71,6 +84,9 @@ export default function LecturerMarkAttendancePage() {
       setStudents([]);
       return;
     }
+    const currentSession = sessions.find((s) => s.id === selectedSessionId);
+    if (!currentSession) return;
+
     setLoadingStudents(true);
     const supabase = createClient();
 
@@ -78,7 +94,7 @@ export default function LecturerMarkAttendancePage() {
       supabase
         .from("course_enrollments")
         .select("student_id, profiles!course_enrollments_student_id_fkey(id, full_name, student_id)")
-        .eq("course_id", selectedSession.course_id),
+        .eq("course_id", currentSession.course_id),
       supabase
         .from("attendance_records")
         .select("student_id, status")
@@ -101,14 +117,22 @@ export default function LecturerMarkAttendancePage() {
       .filter((s) => s.id);
     setStudents(list);
     setLoadingStudents(false);
-  }, [selectedSessionId, selectedSession?.course_id]);
+  }, [selectedSessionId, sessions]);
 
   useEffect(() => {
-    loadSessions();
+    const timer = setTimeout(() => {
+      loadSessions();
+    }, 0);
+    return () => clearTimeout(timer);
   }, [loadSessions]);
 
   useEffect(() => {
-    if (userId) loadStudents();
+    if (userId) {
+      const timer = setTimeout(() => {
+        loadStudents();
+      }, 0);
+      return () => clearTimeout(timer);
+    }
   }, [selectedSessionId, userId, loadStudents]);
 
   async function setStatus(studentId: string, status: Status) {

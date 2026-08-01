@@ -69,6 +69,7 @@ const lecturerLinks = [
   { label: "Sessions", href: "/lecturer/sessions", icon: "sessions" },
   { label: "Mark Attendance", href: "/lecturer/attendance/mark", icon: "attendance" },
   { label: "Attendance Records", href: "/lecturer/attendance", icon: "records" },
+  { label: "Notifications", href: "/lecturer/notifications", icon: "notifications" },
   { label: "Profile", href: "/lecturer/profile", icon: "profile" },
 ];
 
@@ -76,6 +77,7 @@ const studentLinks = [
   { label: "Dashboard", href: "/student", icon: "dashboard" },
   { label: "My Courses", href: "/student/courses", icon: "courses" },
   { label: "Attendance", href: "/student/attendance", icon: "attendance" },
+  { label: "Notifications", href: "/student/notifications", icon: "notifications" },
   { label: "Profile", href: "/student/profile", icon: "profile" },
 ];
 

@@ -4,6 +4,19 @@ import jsPDF from "jspdf";
 import "jspdf-autotable";
 import * as XLSX from "xlsx";
 
+// Module augmentation for jspdf-autotable plugin
+declare module "jspdf" {
+  interface jsPDF {
+    autoTable: (options: {
+      startY?: number;
+      head?: string[][];
+      body?: string[][];
+      styles?: Record<string, unknown>;
+      headStyles?: Record<string, unknown>;
+    }) => void;
+  }
+}
+
 interface AttendanceReportRow {
   studentName: string;
   studentId: string;
@@ -39,7 +52,7 @@ export function exportAttendancePDF(data: AttendanceReportRow[], title: string) 
     row.status,
   ]);
 
-  (doc as any).autoTable({
+  doc.autoTable({
     startY: 35,
     head: [["Student", "Student ID", "Course", "Date", "Status"]],
     body: tableData,
@@ -83,7 +96,7 @@ export function exportCoursePDF(data: CourseReportRow[], title: string) {
     `${row.averageAttendance}%`,
   ]);
 
-  (doc as any).autoTable({
+  doc.autoTable({
     startY: 35,
     head: [["Course", "Code", "Department", "Sessions", "Students", "Avg Attendance"]],
     body: tableData,
