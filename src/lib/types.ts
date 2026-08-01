@@ -83,6 +83,36 @@ export interface Database {
           created_at?: string;
           updated_at?: string;
         };
+        Relationships: [
+          {
+            foreignKeyName: "profiles_faculty_id_fkey";
+            columns: ["faculty_id"];
+            isOneToOne: false;
+            referencedRelation: "faculties";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "profiles_department_id_fkey";
+            columns: ["department_id"];
+            isOneToOne: false;
+            referencedRelation: "departments";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "profiles_program_id_fkey";
+            columns: ["program_id"];
+            isOneToOne: false;
+            referencedRelation: "programs";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "profiles_class_id_fkey";
+            columns: ["class_id"];
+            isOneToOne: false;
+            referencedRelation: "classes";
+            referencedColumns: ["id"];
+          },
+        ];
       };
       faculties: {
         Row: {
@@ -103,6 +133,7 @@ export interface Database {
           code?: string;
           created_at?: string;
         };
+        Relationships: [];
       };
       departments: {
         Row: {
@@ -126,6 +157,7 @@ export interface Database {
           faculty_id?: string | null;
           created_at?: string;
         };
+        Relationships: [];
       };
       programs: {
         Row: {
@@ -155,6 +187,7 @@ export interface Database {
           duration_years?: number;
           created_at?: string;
         };
+        Relationships: [];
       };
       academic_years: {
         Row: {
@@ -181,6 +214,7 @@ export interface Database {
           is_current?: boolean;
           created_at?: string;
         };
+        Relationships: [];
       };
       semesters: {
         Row: {
@@ -210,6 +244,7 @@ export interface Database {
           is_current?: boolean;
           created_at?: string;
         };
+        Relationships: [];
       };
       courses: {
         Row: {
@@ -239,6 +274,7 @@ export interface Database {
           credits?: number;
           created_at?: string;
         };
+        Relationships: [];
       };
       classes: {
         Row: {
@@ -283,6 +319,7 @@ export interface Database {
           capacity?: number | null;
           created_at?: string;
         };
+        Relationships: [];
       };
       course_assignments: {
         Row: {
@@ -306,6 +343,7 @@ export interface Database {
           lecturer_id?: string | null;
           created_at?: string;
         };
+        Relationships: [];
       };
       timetable: {
         Row: {
@@ -338,6 +376,7 @@ export interface Database {
           room?: string | null;
           created_at?: string;
         };
+        Relationships: [];
       };
       course_enrollments: {
         Row: {
@@ -358,6 +397,7 @@ export interface Database {
           course_id?: string;
           enrolled_at?: string;
         };
+        Relationships: [];
       };
       imported_students: {
         Row: {
@@ -399,6 +439,7 @@ export interface Database {
           class_name?: string | null;
           imported_at?: string;
         };
+        Relationships: [];
       };
       attendance_sessions: {
         Row: {
@@ -440,6 +481,7 @@ export interface Database {
           ended_at?: string | null;
           created_at?: string;
         };
+        Relationships: [];
       };
       attendance_records: {
         Row: {
@@ -472,6 +514,7 @@ export interface Database {
           notes?: string | null;
           created_at?: string;
         };
+        Relationships: [];
       };
       notifications: {
         Row: {
@@ -501,6 +544,7 @@ export interface Database {
           is_read?: boolean;
           created_at?: string;
         };
+        Relationships: [];
       };
       audit_logs: {
         Row: {
@@ -536,6 +580,7 @@ export interface Database {
           ip_address?: string | null;
           created_at?: string;
         };
+        Relationships: [];
       };
       system_settings: {
         Row: {
@@ -559,7 +604,10 @@ export interface Database {
           updated_by?: string | null;
           updated_at?: string;
         };
+        Relationships: [];
       };
     };
+    Views: {};
+    Functions: {};
   };
 }
