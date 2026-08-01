@@ -42,6 +42,7 @@ type ImportedStudent = {
   id?: string;
   full_name?: string;
   registration_number?: string;
+  program?: string;
 };
 
 const EMPTY_FORM = {
@@ -303,9 +304,9 @@ export default function RegisterPage() {
     }
 
     toast.success(
-      "Registration successful! Your account is active. You can now log in."
+      "Registration successful! Please enroll your biometric details to secure your account."
     );
-    router.push("/login");
+    router.push("/biometrics");
     setLoading(false);
   }
 
