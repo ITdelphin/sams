@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState, useMemo, useRef } from "react";
+import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import {
   Card,
@@ -57,6 +58,8 @@ import {
 } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { cn } from "@/lib/utils";
+
+const MODEL_URL = "https://cdn.jsdelivr.net/npm/face-api.js@0.22.2/weights";
 
 type Html5QrcodeScannerType = {
   stop: () => Promise<void>;
@@ -133,6 +136,7 @@ function getStatusBadge(status: string): { label: string; className: string; ico
 }
 
 export default function StudentAttendancePage() {
+  const router = useRouter();
   const [activeTab, setActiveTab] = useState<"history" | "mark">("history");
   const [records, setRecords] = useState<AttendanceRecord[]>([]);
   const [courses, setCourses] = useState<{ id: string; name: string; code: string }[]>([]);
@@ -399,18 +403,50 @@ export default function StudentAttendancePage() {
   async function performFingerprintVerification() {
     setFingerVerificationStatus("prompting");
     try {
-      if (window.PublicKeyCredential) {
-        const challenge = new Uint8Array(32);
-        crypto.getRandomValues(challenge);
-        toast.info("Verify your identity with device biometric scanner...");
+      if (!window.PublicKeyCredential) {
+        toast.error("Your browser doesn't support WebAuthn authentication.");
+        setFingerVerificationStatus("error");
+        return;
       }
-      await new Promise((resolve) => setTimeout(resolve, 2000));
+
+      const available = await PublicKeyCredential.isUserVerifyingPlatformAuthenticatorAvailable();
+      if (!available) {
+        toast.error("No fingerprint / face sensor detected on this device.");
+        setFingerVerificationStatus("error");
+        return;
+      }
+
+      toast.info("Verify your identity with device biometric scanner...");
+
+      const challenge = new Uint8Array(32);
+      crypto.getRandomValues(challenge);
+
+      const credential = await navigator.credentials.get({
+        publicKey: {
+          challenge,
+          timeout: 60000,
+          userVerification: "required",
+          rpId: window.location.hostname,
+        },
+      }) as PublicKeyCredential | null;
+
+      if (!credential) {
+        toast.error("Fingerprint verification was cancelled.");
+        setFingerVerificationStatus("error");
+        return;
+      }
+
       setFingerVerificationStatus("success");
-      await saveBiometricAttendanceRecord("Device Fingerprint authentication / PIN");
-    } catch (err) {
+      await saveBiometricAttendanceRecord("Device Fingerprint / Biometric authentication verified");
+    } catch (err: unknown) {
       console.error(err);
+      const name = (err as { name?: string })?.name;
+      if (name === "NotAllowedError") {
+        toast.error("Fingerprint verification was cancelled or denied.");
+      } else {
+        toast.error("Device biometric authentication failed.");
+      }
       setFingerVerificationStatus("error");
-      toast.error("Device biometric authentication failed.");
     }
   }
 

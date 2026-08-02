@@ -808,6 +808,56 @@ export interface Database {
           },
         ];
       };
+      biometric_enrollments: {
+        Row: {
+          id: string;
+          student_id: string;
+          type: "face" | "fingerprint" | "id_card";
+          face_descriptor: unknown | null;
+          webauthn_credential_id: string | null;
+          webauthn_public_key: string | null;
+          card_barcode: string | null;
+          device_info: string | null;
+          is_active: boolean;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          student_id: string;
+          type: "face" | "fingerprint" | "id_card";
+          face_descriptor?: unknown | null;
+          webauthn_credential_id?: string | null;
+          webauthn_public_key?: string | null;
+          card_barcode?: string | null;
+          device_info?: string | null;
+          is_active?: boolean;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: {
+          id?: string;
+          student_id?: string;
+          type?: "face" | "fingerprint" | "id_card";
+          face_descriptor?: unknown | null;
+          webauthn_credential_id?: string | null;
+          webauthn_public_key?: string | null;
+          card_barcode?: string | null;
+          device_info?: string | null;
+          is_active?: boolean;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "biometric_enrollments_student_id_fkey";
+            columns: ["student_id"];
+            isOneToOne: false;
+            referencedRelation: "profiles";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
     };
     Views: Record<string, never>;
     Functions: Record<string, never>;

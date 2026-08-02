@@ -193,6 +193,22 @@ CREATE TABLE IF NOT EXISTS attendance_records (
   UNIQUE(session_id, student_id)
 );
 
+-- Biometric Enrollments
+CREATE TABLE IF NOT EXISTS biometric_enrollments (
+  id UUID DEFAULT uuid_generate_v4() PRIMARY KEY,
+  student_id UUID REFERENCES profiles(id) ON DELETE CASCADE,
+  type TEXT NOT NULL CHECK (type IN ('face', 'fingerprint', 'id_card')),
+  face_descriptor JSONB,
+  webauthn_credential_id TEXT,
+  webauthn_public_key TEXT,
+  card_barcode TEXT,
+  device_info TEXT,
+  is_active BOOLEAN DEFAULT true,
+  created_at TIMESTAMPTZ DEFAULT NOW(),
+  updated_at TIMESTAMPTZ DEFAULT NOW(),
+  UNIQUE(student_id, type)
+);
+
 -- Notifications
 CREATE TABLE IF NOT EXISTS notifications (
   id UUID DEFAULT uuid_generate_v4() PRIMARY KEY,
@@ -258,6 +274,9 @@ CREATE INDEX IF NOT EXISTS idx_notifications_user ON notifications(user_id);
 CREATE INDEX IF NOT EXISTS idx_notifications_read ON notifications(is_read);
 CREATE INDEX IF NOT EXISTS idx_audit_user ON audit_logs(user_id);
 CREATE INDEX IF NOT EXISTS idx_audit_entity ON audit_logs(entity_type);
+CREATE INDEX IF NOT EXISTS idx_biometric_student ON biometric_enrollments(student_id);
+CREATE INDEX IF NOT EXISTS idx_biometric_type ON biometric_enrollments(type);
+CREATE INDEX IF NOT EXISTS idx_biometric_active ON biometric_enrollments(is_active);
 
 -- Row Level Security
 ALTER TABLE profiles ENABLE ROW LEVEL SECURITY;
@@ -277,6 +296,7 @@ ALTER TABLE audit_logs ENABLE ROW LEVEL SECURITY;
 ALTER TABLE system_settings ENABLE ROW LEVEL SECURITY;
 ALTER TABLE academic_years ENABLE ROW LEVEL SECURITY;
 ALTER TABLE semesters ENABLE ROW LEVEL SECURITY;
+ALTER TABLE biometric_enrollments ENABLE ROW LEVEL SECURITY;
 
 -- Profiles Policies
 -- Public read for roll number login lookup
@@ -408,6 +428,24 @@ CREATE POLICY "Admins can manage semesters" ON semesters FOR ALL USING (
   EXISTS (SELECT 1 FROM profiles WHERE id = auth.uid() AND role = 'super_admin')
 );
 
+-- Biometric enrollments policies
+CREATE POLICY "Students can view own biometric enrollments" ON biometric_enrollments FOR SELECT USING (student_id = auth.uid());
+CREATE POLICY "Students can insert own biometric enrollments" ON biometric_enrollments FOR INSERT WITH CHECK (student_id = auth.uid());
+CREATE POLICY "Students can update own biometric enrollments" ON biometric_enrollments FOR UPDATE USING (student_id = auth.uid());
+CREATE POLICY "Admins can view all biometric enrollments" ON biometric_enrollments FOR SELECT USING (
+  EXISTS (SELECT 1 FROM profiles WHERE id = auth.uid() AND role = 'super_admin')
+);
+CREATE POLICY "Admins can manage all biometric enrollments" ON biometric_enrollments FOR ALL USING (
+  EXISTS (SELECT 1 FROM profiles WHERE id = auth.uid() AND role = 'super_admin')
+);
+CREATE POLICY "Lecturers can view biometric enrollments for their sessions" ON biometric_enrollments FOR SELECT USING (
+  EXISTS (
+    SELECT 1 FROM attendance_sessions s
+    JOIN course_assignments ca ON ca.course_id = s.course_id
+    WHERE s.lecturer_id = auth.uid() AND s.is_active = true
+  )
+);
+
 -- Function to handle new user signup
 CREATE OR REPLACE FUNCTION handle_new_user()
 RETURNS TRIGGER AS $$
@@ -444,3 +482,4 @@ $$ LANGUAGE plpgsql;
 
 -- Triggers for updated_at
 CREATE TRIGGER update_profiles_updated_at BEFORE UPDATE ON profiles FOR EACH ROW EXECUTE FUNCTION update_updated_at();
+CREATE TRIGGER update_biometric_enrollments_updated_at BEFORE UPDATE ON biometric_enrollments FOR EACH ROW EXECUTE FUNCTION update_updated_at();
