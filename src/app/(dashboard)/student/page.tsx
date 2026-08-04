@@ -59,11 +59,11 @@ const fallbackWeek = [
   { name: "Sun", present: 0, late: 0, absent: 0 },
 ];
 
-const fallbackClasses = [
-  { id: "sc1", schedule: "08:00 - 10:00", room: "Room 204", course: { name: "Software Engineering", code: "SE301", lecturer: { full_name: "Dr. Kagame" } } },
-  { id: "sc2", schedule: "10:00 - 12:00", room: "Lab 3", course: { name: "Database Systems", code: "DB201", lecturer: { full_name: "Prof. Uwase" } } },
-  { id: "sc3", schedule: "13:00 - 15:00", room: "Lab 1", course: { name: "Web Development", code: "CS101", lecturer: { full_name: "Dr. Mugisha" } } },
-  { id: "sc4", schedule: "15:00 - 17:00", room: "Room 105", course: { name: "Artificial Intelligence", code: "AI301", lecturer: { full_name: "Dr. Nkurunziza" } } },
+const fallbackClasses: ClassData[] = [
+  { id: "sc1", courses: { name: "Software Engineering", code: "SE301" }, classes: { id: "cls1", name: "SE301-A", section: "A", room: "Room 204" } },
+  { id: "sc2", courses: { name: "Database Systems", code: "DB201" }, classes: { id: "cls2", name: "DB201-A", section: "A", room: "Lab 3" } },
+  { id: "sc3", courses: { name: "Web Development", code: "CS101" }, classes: { id: "cls3", name: "CS101-A", section: "A", room: "Lab 1" } },
+  { id: "sc4", courses: { name: "Artificial Intelligence", code: "AI301" }, classes: { id: "cls4", name: "AI301-A", section: "A", room: "Room 105" } },
 ];
 
 const fallbackRecords = [
@@ -148,9 +148,14 @@ type StudentProfile = {
 type ClassData = {
   id: string;
   course_id?: string;
+  class_id?: string;
   schedule?: string;
   room?: string;
-  course?: { name?: string; code?: string; lecturer?: { full_name?: string } };
+  name?: string;
+  section?: string;
+  year?: number;
+  courses?: { name?: string; code?: string } | null;
+  classes?: { id: string; name: string; section: string; room?: string; year?: number } | null;
 };
 
 function buildWeekData(records: AttendanceRecord[]): WeekData[] {
@@ -227,8 +232,8 @@ export default function StudentDashboardPage() {
           .order("marked_at", { ascending: false })
           .limit(10),
         supabase
-          .from("classes")
-          .select("id, course_id, schedule, room, course:courses(name, code, lecturer:profiles(full_name))"),
+          .from("course_assignments")
+          .select("course_id, class_id, courses(name, code), classes(id, name, section, room, year)"),
       ]);
 
       setProfile(profileRes.data as StudentProfile | null);
@@ -500,7 +505,7 @@ export default function StudentDashboardPage() {
             <div className="grid gap-4 sm:grid-cols-2">
               {todayClasses.map((c) => (
                 <div
-                  key={c.id}
+                  key={c.class_id || c.id}
                   className="rounded-xl border border-border p-4 transition-all hover:border-sky-300 hover:shadow-md"
                 >
                   <div className="flex items-start justify-between">
@@ -509,20 +514,16 @@ export default function StudentDashboardPage() {
                     </div>
                     <Badge className="bg-sky-500/10 text-sky-600">Upcoming</Badge>
                   </div>
-                  <p className="mt-3 font-semibold text-foreground">{c.course?.name || "—"}</p>
-                  <p className="text-xs text-muted-foreground">{c.course?.code || "—"}</p>
+                  <p className="mt-3 font-semibold text-foreground">{c.courses?.name || "—"}</p>
+                  <p className="text-xs text-muted-foreground">{c.courses?.code || "—"}</p>
                   <div className="mt-3 space-y-1.5 text-sm text-muted-foreground">
                     <div className="flex items-center gap-2">
                       <MapPin className="size-3.5" />
-                      {c.room || "—"}
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <GraduationCap className="size-3.5" />
-                      {c.course?.lecturer?.full_name || "—"}
+                      {c.classes?.room || "—"}
                     </div>
                     <div className="flex items-center gap-2">
                       <Clock className="size-3.5" />
-                      {c.schedule || "—"}
+                      Section {c.classes?.section || "—"}
                     </div>
                   </div>
                 </div>

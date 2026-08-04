@@ -95,7 +95,7 @@ export default function LecturerProfilePage() {
             <p className="text-sm text-muted-foreground">{profile?.email}</p>
             <Badge className={`mt-2 ${getStatusColor(profile?.account_status || "")}`}>{profile?.account_status}</Badge>
             <Badge variant="outline" className="mt-1">{getRoleLabel(profile?.role || "lecturer")}</Badge>
-            <p className="mt-4 text-xs text-muted-foreground">Member since {formatDate(profile?.created_at)}</p>
+            <p className="mt-4 text-xs text-muted-foreground">Member since {formatDate(profile?.created_at || "")}</p>
           </CardContent>
         </Card>
 

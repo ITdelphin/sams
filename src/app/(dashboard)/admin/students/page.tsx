@@ -130,7 +130,7 @@ export default function AdminStudentsPage() {
         student_id: editForm.student_id || null,
         department_id: editForm.department_id || null,
         faculty_id: editForm.faculty_id || null,
-        account_status: editForm.account_status,
+        account_status: editForm.account_status as "pending" | "approved" | "suspended" | "inactive" | "rejected" | "graduated",
       })
       .eq("id", editStudent.id);
 

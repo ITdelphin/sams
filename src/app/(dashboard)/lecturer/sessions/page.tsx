@@ -203,7 +203,7 @@ export default function LecturerSessionsPage() {
     const { error } = await supabase.from("attendance_sessions").insert({
       course_id: newCourse,
       lecturer_id: userId,
-      method: newMethod,
+      method: newMethod as "manual" | "student_id_card" | "qr_code" | "face_recognition" | "fingerprint",
       qr_code: qrCode,
       qr_expires_at: qrExpires,
     });

@@ -189,10 +189,10 @@ const fallbackRecords: Record[] = [
   },
 ];
 
-const fallbackClasses = [
-  { id: "c1", schedule: "08:00 - 10:00", room: "Lab 3", courses: { name: "Web Development", code: "CS101" } },
-  { id: "c2", schedule: "10:00 - 12:00", room: "Room 204", courses: { name: "Database Systems", code: "DB201" } },
-  { id: "c3", schedule: "14:00 - 16:00", room: "Room 105", courses: { name: "Software Engineering", code: "SE301" } },
+const fallbackClasses: ClassData[] = [
+  { id: "c1", schedule: "08:00 - 10:00", room: "Lab 3", courses: { name: "Web Development", code: "CS101", lecturer_id: "" } },
+  { id: "c2", schedule: "10:00 - 12:00", room: "Room 204", courses: { name: "Database Systems", code: "DB201", lecturer_id: "" } },
+  { id: "c3", schedule: "14:00 - 16:00", room: "Room 105", courses: { name: "Software Engineering", code: "SE301", lecturer_id: "" } },
 ];
 
 const quickActions = [
@@ -207,7 +207,7 @@ const quickActions = [
 ];
 
 type CourseData = { id: string; name: string; code: string; departments: { name: string } | null };
-type ClassData = { id: string; name: string; section: string; year: string; schedule: string; room: string; courses: { name: string; code: string; lecturer_id: string } | null };
+type ClassData = { id: string; name?: string; section?: string; year?: string; schedule?: string; room?: string; classes?: { id: string; name: string; section: string; year: string } | null; courses?: { name: string; code: string; lecturer_id: string } | null };
 type NotificationData = { id: string; title: string; message: string; type: string; created_at: string; is_read: boolean };
 
 export default function LecturerDashboardPage() {

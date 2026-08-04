@@ -102,7 +102,7 @@ export default function LecturerAttendancePage() {
       courseName: r.attendance_sessions?.courses?.name || "N/A",
       courseCode: r.attendance_sessions?.courses?.code || "N/A",
       status: r.status,
-      sessionDate: formatDate(r.attendance_sessions?.started_at),
+      sessionDate: formatDate(r.attendance_sessions?.started_at || ""),
       markedAt: formatDate(r.marked_at),
     }));
     exportAttendancePDF(reportData, "Lecturer Attendance Report");
@@ -120,7 +120,7 @@ export default function LecturerAttendancePage() {
       courseName: r.attendance_sessions?.courses?.name || "N/A",
       courseCode: r.attendance_sessions?.courses?.code || "N/A",
       status: r.status,
-      sessionDate: formatDate(r.attendance_sessions?.started_at),
+      sessionDate: formatDate(r.attendance_sessions?.started_at || ""),
       markedAt: formatDate(r.marked_at),
     }));
     exportAttendanceExcel(reportData, "Lecturer Attendance Report");
@@ -191,7 +191,7 @@ export default function LecturerAttendancePage() {
                   <TableRow key={r.id}>
                     <TableCell className="font-medium">{r.profiles?.full_name || "N/A"}</TableCell>
                     <TableCell>{r.attendance_sessions?.courses?.name || "N/A"}</TableCell>
-                    <TableCell className="text-sm text-muted-foreground">{formatDate(r.attendance_sessions?.started_at)}</TableCell>
+                    <TableCell className="text-sm text-muted-foreground">{formatDate(r.attendance_sessions?.started_at || "")}</TableCell>
                     <TableCell><Badge className={getStatusColor(r.status)}>{r.status}</Badge></TableCell>
                     <TableCell className="text-sm text-muted-foreground">{formatDate(r.marked_at)}</TableCell>
                   </TableRow>

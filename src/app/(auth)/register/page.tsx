@@ -42,7 +42,7 @@ type ImportedStudent = {
   id?: string;
   full_name?: string;
   registration_number?: string;
-  program?: string;
+  program?: string | null;
 };
 
 const EMPTY_FORM = {

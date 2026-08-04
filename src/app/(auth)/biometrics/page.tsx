@@ -199,6 +199,7 @@ export default function BiometricsPage() {
             }
 
             const descriptor = Array.from(detection.descriptor) as number[];
+            if (!userId) { toast.error("Not authenticated."); return; }
             const supabase = createClient();
             const { error } = await supabase.from("biometric_enrollments").upsert(
                 { student_id: userId, type: "face", face_descriptor: descriptor, is_active: true },
@@ -283,6 +284,7 @@ export default function BiometricsPage() {
                 : "";
 
             const supabase = createClient();
+            if (!userId) { toast.error("Not authenticated."); return; }
             const { error } = await supabase.from("biometric_enrollments").upsert(
                 {
                     student_id: userId,
@@ -355,6 +357,7 @@ export default function BiometricsPage() {
     async function saveCardBarcode(barcode: string) {
         const trimmed = barcode.trim();
         if (!trimmed) { toast.error("Card number cannot be empty."); return; }
+        if (!userId) { toast.error("Not authenticated."); return; }
         setCardStatus("processing");
         const supabase = createClient();
         const { error } = await supabase.from("biometric_enrollments").upsert(
