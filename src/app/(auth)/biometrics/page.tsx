@@ -21,7 +21,7 @@ import {
 
 type EnrollStatus = "idle" | "loading" | "capturing" | "processing" | "enrolled" | "error";
 
-const MODEL_URL = "https://cdn.jsdelivr.net/npm/face-api.js@0.22.2/weights";
+const MODEL_URL = "https://cdn.jsdelivr.net/gh/justadudewhohacks/face-api.js@0.22.2/weights";
 
 export default function BiometricsPage() {
     const router = useRouter();
