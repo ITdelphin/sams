@@ -108,6 +108,25 @@ export async function updateSession(request: NextRequest) {
       url.pathname = "/change-password";
       return NextResponse.redirect(url);
     }
+
+    // Students without biometrics must enroll before accessing dashboard
+    const isBiometricsPath = pathname === "/biometrics";
+    const isProtectedPath = !isPublicPath && !isAuthOnlyPath && !isBiometricsPath;
+
+    if (profile?.role === "student" && isProtectedPath) {
+      const { data: bios } = await supabase
+        .from("biometric_enrollments")
+        .select("id")
+        .eq("student_id", user.id)
+        .eq("is_active", true)
+        .limit(1);
+
+      if (!bios || bios.length === 0) {
+        const url = request.nextUrl.clone();
+        url.pathname = "/biometrics";
+        return NextResponse.redirect(url);
+      }
+    }
   }
 
   return supabaseResponse;

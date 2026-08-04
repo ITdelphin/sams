@@ -103,7 +103,7 @@ export default function DashboardLayout({
         .select("role, account_status")
         .eq("id", data.user.id)
         .single()
-        .then(async ({ data: profile }) => {
+        .then(({ data: profile }) => {
           if (!profile) {
             router.push("/login");
             return;
@@ -112,21 +112,6 @@ export default function DashboardLayout({
             router.push("/pending");
             return;
           }
-
-          if (profile.role === "student") {
-            const { data: bios } = await supabase
-              .from("biometric_enrollments")
-              .select("id")
-              .eq("student_id", data.user.id)
-              .eq("is_active", true)
-              .limit(1);
-
-            if (!bios || bios.length === 0) {
-              router.push("/biometrics");
-              return;
-            }
-          }
-
           setRole(profile.role);
           setLoading(false);
         });
