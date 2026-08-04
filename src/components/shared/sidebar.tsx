@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname, useRouter } from "next/navigation";
+import { usePathname } from "next/navigation";
 import { cn } from "@/lib/utils";
 import { createClient } from "@/lib/supabase/client";
 import type { LucideIcon } from "lucide-react";
@@ -72,7 +72,6 @@ const iconMap: Record<string, LucideIcon> = {
 
 export function Sidebar({ links, role, groups }: SidebarProps) {
   const pathname = usePathname();
-  const router = useRouter();
 
   async function handleLogout() {
     const supabase = createClient();

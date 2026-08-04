@@ -45,19 +45,12 @@ import {
   ScanFace,
   Fingerprint,
   CreditCard,
-  IdCard,
-  ShieldCheck,
-  UserCheck,
   Sparkles,
   History,
-  Check,
-  CheckCircle2,
   Play,
   RotateCw,
   Camera,
 } from "lucide-react";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { cn } from "@/lib/utils";
 
 const MODEL_URL = "https://cdn.jsdelivr.net/gh/justadudewhohacks/face-api.js@0.22.2/weights";
 
@@ -159,24 +152,6 @@ export default function StudentAttendancePage() {
   const [enrolledBio, setEnrolledBio] = useState<{ face?: number[]; fingerprint?: boolean; card_barcode?: string } | null>(null);
   const [checkingBioEnrollment, setCheckingBioEnrollment] = useState(false);
   const [bioError, setBioError] = useState("");
-  const [faceapiLoaded, setFaceapiLoaded] = useState(false);
-
-  // Multi-factor biometric wizard state (legacy fallback simulation)
-  const [bioStep, setBioStep] = useState(0);
-  const [profileNumber, setProfileNumber] = useState("");
-  const [profileError, setProfileError] = useState("");
-  const [verifiedProfile, setVerifiedProfile] = useState<{
-    full_name: string;
-    student_id: string | null;
-    profile_photo_url: string | null;
-    classes?: { name: string } | null;
-  } | null>(null);
-  const [faceScanned, setFaceScanned] = useState(false);
-  const [faceMatch, setFaceMatch] = useState<number | null>(null);
-  const [faceConfirmed, setFaceConfirmed] = useState(false);
-  const [fingerDone, setFingerDone] = useState(false);
-  const [cardDone, setCardDone] = useState(false);
-  const [stepBusy, setStepBusy] = useState(false);
 
   // Camera scanner state
   const scannerInstanceRef = useRef<Html5QrcodeScannerType | null>(null);
@@ -184,7 +159,7 @@ export default function StudentAttendancePage() {
   const [scannerActive, setScannerActive] = useState(false);
   const [scannerError, setScannerError] = useState("");
 
-  const fetchEnrollmentData = async (method: string) => {
+  const fetchEnrollmentData = async (_method: string) => {
     if (!studentId) return;
     setCheckingBioEnrollment(true);
     setBioError("");
@@ -371,7 +346,7 @@ export default function StudentAttendancePage() {
   async function stopCardVerificationScanner() {
     if (scannerInstanceRef.current) {
       try {
-        await (scannerInstanceRef.current as any).stop();
+        await (scannerInstanceRef.current as { stop(): Promise<void> }).stop();
       } catch { }
       scannerInstanceRef.current = null;
     }
@@ -470,8 +445,9 @@ export default function StudentAttendancePage() {
       loadRecords();
       loadActiveSessions();
       setTimeout(() => setSelectedSessionInput(null), 1500);
-    } catch (err: any) {
-      toast.error("Failed to record attendance: " + err.message);
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : "Unknown error";
+      toast.error("Failed to record attendance: " + message);
     } finally {
       setVerifying(false);
     }
@@ -614,16 +590,6 @@ export default function StudentAttendancePage() {
   useEffect(() => {
     if (selectedSessionInput) {
       const timer = setTimeout(() => {
-        setBioStep(0);
-        setProfileNumber("");
-        setProfileError("");
-        setVerifiedProfile(null);
-        setFaceScanned(false);
-        setFaceMatch(null);
-        setFaceConfirmed(false);
-        setFingerDone(false);
-        setCardDone(false);
-        setStepBusy(false);
         fetchEnrollmentData(selectedSessionInput.method);
       }, 0);
       return () => clearTimeout(timer);
@@ -632,7 +598,6 @@ export default function StudentAttendancePage() {
 
   useEffect(() => {
     async function init() {
-      // eslint-disable-next-line react-hooks/exhaustive-deps
       setTimeout(async () => {
         setLoading(true);
         await loadRecords();
@@ -640,17 +605,14 @@ export default function StudentAttendancePage() {
       }, 0);
     }
     init();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   useEffect(() => {
     if (studentId) {
-      // eslint-disable-next-line react-hooks/exhaustive-deps
       setTimeout(() => {
         loadActiveSessions();
       }, 0);
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [studentId, showDebugSessions]);
 
   const stats = useMemo(() => {
@@ -785,124 +747,6 @@ export default function StudentAttendancePage() {
   const handleMarkQR = async () => {
     await performCheckIn(qrToken);
   };
-
-  async function handleProfileNext() {
-    const num = profileNumber.trim();
-    if (!num) {
-      setProfileError("Please enter your profile number (Student ID).");
-      return;
-    }
-    setStepBusy(true);
-    setProfileError("");
-    await new Promise((resolve) => setTimeout(resolve, 800));
-
-    const { data, error } = await supabase
-      .from("profiles")
-      .select("full_name, student_id, profile_photo_url, classes(name)")
-      .eq("id", studentId)
-      .single();
-
-    setStepBusy(false);
-    if (error || !data) {
-      setProfileError("Could not load your profile. Please try again.");
-      return;
-    }
-    if (!data.student_id || data.student_id.toLowerCase() !== num.toLowerCase()) {
-      setProfileError("This profile number does not match your registered profile.");
-      return;
-    }
-    setVerifiedProfile(data);
-    setBioStep(1);
-  }
-
-  async function handleFaceScan() {
-    setStepBusy(true);
-    await new Promise((resolve) => setTimeout(resolve, 2200));
-    setFaceMatch(96 + Math.floor(Math.random() * 5));
-    setFaceScanned(true);
-    setStepBusy(false);
-  }
-
-  async function handleFingerScan() {
-    setStepBusy(true);
-    await new Promise((resolve) => setTimeout(resolve, 2000));
-    setFingerDone(true);
-    setStepBusy(false);
-  }
-
-  async function handleCardTap() {
-    setStepBusy(true);
-    await new Promise((resolve) => setTimeout(resolve, 1800));
-    setCardDone(true);
-    setStepBusy(false);
-  }
-
-  async function completeBiometricCheckIn() {
-    if (!selectedSessionInput || !studentId) return;
-
-    setVerifying(true);
-    setVerificationStep("scanning");
-
-    const { data: session } = await supabase
-      .from("attendance_sessions")
-      .select("*")
-      .eq("id", selectedSessionInput.id)
-      .single();
-
-    if (!session || !session.is_active) {
-      toast.error("This session is no longer active.");
-      setVerifying(false);
-      setVerificationStep("idle");
-      return;
-    }
-
-    const { data: existing } = await supabase
-      .from("attendance_records")
-      .select("id")
-      .eq("session_id", selectedSessionInput.id)
-      .eq("student_id", studentId)
-      .maybeSingle();
-
-    if (existing) {
-      toast.error("Attendance already recorded.");
-      setVerifying(false);
-      setSelectedSessionInput(null);
-      return;
-    }
-
-    const { error: insertError } = await supabase.from("attendance_records").insert({
-      session_id: selectedSessionInput.id,
-      student_id: studentId,
-      status: "present",
-      marked_at: new Date().toISOString(),
-      marked_by: studentId,
-      notes: `Multi-factor verified: profile ${profileNumber.trim()}, face match ${faceMatch ?? 0}%, fingerprint, ID card`,
-    });
-
-    if (insertError) {
-      toast.error("Failed to complete check-in: " + insertError.message);
-      setVerificationStep("idle");
-      setVerifying(false);
-      return;
-    }
-
-    setVerificationStep("success");
-    toast.success("Multi-factor identity verified! Present logged.");
-    loadRecords();
-    loadActiveSessions();
-    setTimeout(() => setSelectedSessionInput(null), 1500);
-    setVerifying(false);
-  }
-
-  function initialsOf(name: string): string {
-    return name
-      .split(" ")
-      .filter(Boolean)
-      .map((w) => w[0])
-      .slice(0, 2)
-      .join("")
-      .toUpperCase();
-  }
 
   const handleMarkBiometric = async () => {
     if (!selectedSessionInput) return;

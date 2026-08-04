@@ -77,27 +77,29 @@ export default function AdminAttendancePage() {
 
   const [loading, setLoading] = useState(true);
 
-  const loadFaculties = async () => {
-    setLoading(true);
-    const supabase = createClient();
-    const { data: facs } = await supabase.from("faculties").select("*").order("name");
-
-    const facultiesWithCounts = await Promise.all(
-      (facs || []).map(async (f) => {
-        const { count } = await supabase
-          .from("departments")
-          .select("id", { count: "exact", head: true })
-          .eq("faculty_id", f.id);
-        return { ...f, department_count: count || 0 };
-      })
-    );
-
-    setFaculties(facultiesWithCounts);
-    setLoading(false);
-  };
-
   useEffect(() => {
-    loadFaculties();
+    let cancelled = false;
+    async function load() {
+      const supabase = createClient();
+      const { data: facs } = await supabase.from("faculties").select("*").order("name");
+
+      const facultiesWithCounts = await Promise.all(
+        (facs || []).map(async (f) => {
+          const { count } = await supabase
+            .from("departments")
+            .select("id", { count: "exact", head: true })
+            .eq("faculty_id", f.id);
+          return { ...f, department_count: count || 0 };
+        })
+      );
+
+      if (!cancelled) {
+        setFaculties(facultiesWithCounts);
+        setLoading(false);
+      }
+    }
+    load();
+    return () => { cancelled = true; };
   }, []);
 
   async function loadDepartments(faculty: Faculty) {
@@ -137,13 +139,13 @@ export default function AdminAttendancePage() {
       .eq("department_id", department.id)
       .order("name");
 
-    const coursesWithCounts = await Promise.all(
+    const coursesWithCounts: Course[] = await Promise.all(
       (coursesData || []).map(async (c) => {
         const { count } = await supabase
           .from("attendance_sessions")
           .select("id", { count: "exact", head: true })
           .eq("course_id", c.id);
-        return { ...c, session_count: count || 0 };
+        return { ...c, session_count: count || 0 } as Course;
       })
     );
 
@@ -163,13 +165,13 @@ export default function AdminAttendancePage() {
       .eq("course_id", course.id)
       .order("started_at", { ascending: false });
 
-    const sessionsWithCounts = await Promise.all(
+    const sessionsWithCounts: Session[] = await Promise.all(
       (sessionsData || []).map(async (s) => {
         const { count } = await supabase
           .from("attendance_records")
           .select("id", { count: "exact", head: true })
           .eq("session_id", s.id);
-        return { ...s, attendance_count: count || 0 };
+        return { ...s, attendance_count: count || 0 } as Session;
       })
     );
 
@@ -189,7 +191,7 @@ export default function AdminAttendancePage() {
       .eq("session_id", session.id)
       .order("created_at", { ascending: false });
 
-    setRecords(data || []);
+    setRecords((data as AttendanceRecord[]) || []);
     setView("records");
     setLoading(false);
   }
@@ -358,7 +360,7 @@ export default function AdminAttendancePage() {
                     </CardHeader>
                     <CardContent className="space-y-2">
                       <p className="text-sm text-muted-foreground">
-                        Lecturer: {(course as any).profiles?.full_name || "Not assigned"}
+                        Lecturer: {course.profiles?.full_name || "Not assigned"}
                       </p>
                       <div className="flex items-center justify-between">
                         <span className="text-sm font-medium">{course.session_count} sessions</span>
@@ -395,13 +397,13 @@ export default function AdminAttendancePage() {
                         const q = search.toLowerCase();
                         const method = getMethodBadge(s.method);
                         return method.label.toLowerCase().includes(q) ||
-                          (s as any).profiles?.full_name?.toLowerCase().includes(q);
+                          (s as Session).profiles?.full_name?.toLowerCase().includes(q);
                       })
                       .map((session) => {
                         const method = getMethodBadge(session.method);
                         return (
                           <TableRow key={session.id}>
-                            <TableCell className="font-medium">{(session as any).profiles?.full_name || "N/A"}</TableCell>
+                            <TableCell className="font-medium">{session.profiles?.full_name || "N/A"}</TableCell>
                             <TableCell><Badge className={method.className}>{method.label}</Badge></TableCell>
                             <TableCell className="text-sm">{formatDateTime(session.started_at)}</TableCell>
                             <TableCell className="text-sm">{session.ended_at ? formatDateTime(session.ended_at) : "-"}</TableCell>
@@ -483,14 +485,14 @@ export default function AdminAttendancePage() {
                         .filter((r) => {
                           if (!search) return true;
                           const q = search.toLowerCase();
-                          const name = (r as any).profiles?.full_name?.toLowerCase() || "";
-                          const roll = (r as any).profiles?.student_id?.toLowerCase() || "";
+                          const name = r.profiles?.full_name?.toLowerCase() || "";
+                          const roll = r.profiles?.student_id?.toLowerCase() || "";
                           return name.includes(q) || roll.includes(q) || r.status.includes(q);
                         })
                         .map((record) => (
                           <TableRow key={record.id}>
-                            <TableCell className="font-medium">{(record as any).profiles?.full_name || "N/A"}</TableCell>
-                            <TableCell>{(record as any).profiles?.student_id || "-"}</TableCell>
+                            <TableCell className="font-medium">{record.profiles?.full_name || "N/A"}</TableCell>
+                            <TableCell>{record.profiles?.student_id || "-"}</TableCell>
                             <TableCell><Badge className={getStatusColor(record.status)}>{record.status}</Badge></TableCell>
                             <TableCell className="text-sm">{formatDateTime(record.marked_at)}</TableCell>
                             <TableCell className="text-sm text-muted-foreground">{record.notes || "-"}</TableCell>

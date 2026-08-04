@@ -19,7 +19,7 @@ interface AuditLog {
   new_value: string | null;
   ip_address: string | null;
   created_at: string;
-  profiles?: { full_name: string } | null;
+  profiles?: { full_name: string | null } | null;
 }
 
 export default function AdminAuditLogPage() {
@@ -48,7 +48,7 @@ export default function AdminAuditLogPage() {
     const q = search.toLowerCase();
     const matchesSearch =
       !q ||
-      (log as any).profiles?.full_name?.toLowerCase().includes(q) ||
+      log.profiles?.full_name?.toLowerCase().includes(q) ||
       log.action.toLowerCase().includes(q) ||
       log.entity_type.toLowerCase().includes(q);
     const matchesFrom = !dateFrom || new Date(log.created_at) >= new Date(dateFrom);
@@ -106,7 +106,7 @@ export default function AdminAuditLogPage() {
                 paged.map((log) => (
                   <TableRow key={log.id}>
                     <TableCell className="text-sm">{formatDateTime(log.created_at)}</TableCell>
-                    <TableCell className="text-sm">{(log as any).profiles?.full_name || "System"}</TableCell>
+                    <TableCell className="text-sm">{log.profiles?.full_name || "System"}</TableCell>
                     <TableCell><Badge className={getActionColor(log.action)}>{log.action}</Badge></TableCell>
                     <TableCell className="text-sm">{log.entity_type}</TableCell>
                     <TableCell className="max-w-[200px] truncate text-xs text-muted-foreground">

@@ -20,9 +20,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Separator } from "@/components/ui/separator";
 import { toast } from "sonner";
-import { Eye, EyeOff, CheckCircle2, Loader2 } from "lucide-react";
+import { Eye, EyeOff, CheckCircle2, Loader2, GraduationCap } from "lucide-react";
 
 type Faculty = { id: string; name: string };
 type Department = { id: string; name: string; faculty_id: string | null };
@@ -49,7 +48,6 @@ const EMPTY_FORM = {
   firstName: "",
   lastName: "",
   email: "",
-  phoneNumber: "",
   rollNumber: "",
   facultyId: "",
   departmentId: "",
@@ -57,8 +55,6 @@ const EMPTY_FORM = {
   academicYearId: "",
   semesterId: "",
   classId: "",
-  gender: "",
-  dateOfBirth: "",
   password: "",
   confirmPassword: "",
 };
@@ -203,8 +199,6 @@ export default function RegisterPage() {
       [form.programId, "Program"],
       [form.academicYearId, "Academic Year"],
       [form.classId, "Class / Section"],
-      [form.gender, "Gender"],
-      [form.dateOfBirth, "Date of Birth"],
     ];
 
     for (const [value, label] of required) {
@@ -270,14 +264,11 @@ export default function RegisterPage() {
         last_name: form.lastName.trim(),
         full_name: `${form.firstName.trim()} ${form.lastName.trim()}`.trim(),
         role: "student",
-        phone_number: form.phoneNumber.trim() || null,
         student_id: form.rollNumber.trim(),
         faculty_id: form.facultyId,
         department_id: form.departmentId,
         program_id: form.programId,
         class_id: form.classId,
-        gender: form.gender,
-        date_of_birth: form.dateOfBirth || null,
         account_status: "approved",
       });
 
@@ -321,14 +312,14 @@ export default function RegisterPage() {
     <div className="flex min-h-screen items-center justify-center bg-[#F8FAFC] px-4 py-10">
       <div className="w-full max-w-2xl [animation:fade-up_0.5s_ease_both]">
         <Card className="overflow-hidden border-slate-200 shadow-xl shadow-slate-900/5">
-          <div className="bg-gradient-to-r from-[#1E3A8A] via-[#1E40AF] to-sky-500 px-6 py-8 text-center">
-            <div className="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-xl bg-white/10 text-sm font-bold text-white backdrop-blur">
-              SA
+          <div className="bg-gradient-to-r from-indigo-900 via-violet-800 to-indigo-700 px-6 py-8 text-center">
+            <div className="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-xl bg-white/10 backdrop-blur">
+              <GraduationCap className="size-6 text-white" />
             </div>
             <CardTitle className="text-2xl text-white">
               Create Student Account
             </CardTitle>
-            <CardDescription className="text-sky-100/80">
+            <CardDescription className="text-violet-100/80">
               Register with your university details to get started
             </CardDescription>
           </div>
@@ -340,11 +331,6 @@ export default function RegisterPage() {
                   {error}
                 </div>
               )}
-
-              <div className="rounded-xl border border-sky-100 bg-sky-50 p-3 text-xs text-sky-700">
-                Only students can register. Lecturer and admin accounts are
-                created by the university administrator.
-              </div>
 
               <div className="space-y-2">
                 <Label htmlFor="rollNumber">
@@ -413,19 +399,7 @@ export default function RegisterPage() {
                     required
                   />
                 </div>
-                <div className="space-y-2">
-                  <Label htmlFor="phoneNumber">Phone Number *</Label>
-                  <Input
-                    id="phoneNumber"
-                    placeholder="+250 7XX XXX XXX"
-                    value={form.phoneNumber}
-                    onChange={(e) => updateForm("phoneNumber", e.target.value)}
-                    required
-                  />
-                </div>
               </div>
-
-              <Separator />
 
               <div className="grid gap-4 sm:grid-cols-2">
                 <div className="space-y-2">
@@ -578,37 +552,6 @@ export default function RegisterPage() {
 
               <div className="grid gap-4 sm:grid-cols-2">
                 <div className="space-y-2">
-                  <Label>Gender *</Label>
-                  <Select
-                    value={form.gender}
-                    onValueChange={(v) => updateForm("gender", v)}
-                  >
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select gender" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="male">Male</SelectItem>
-                      <SelectItem value="female">Female</SelectItem>
-                      <SelectItem value="other">Other</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="dateOfBirth">Date of Birth *</Label>
-                  <Input
-                    id="dateOfBirth"
-                    type="date"
-                    value={form.dateOfBirth}
-                    onChange={(e) => updateForm("dateOfBirth", e.target.value)}
-                    required
-                  />
-                </div>
-              </div>
-
-              <Separator />
-
-              <div className="grid gap-4 sm:grid-cols-2">
-                <div className="space-y-2">
                   <Label htmlFor="password">Password *</Label>
                   <div className="relative">
                     <Input
@@ -694,7 +637,7 @@ export default function RegisterPage() {
 
               <Button
                 type="submit"
-                className="w-full bg-gradient-to-r from-sky-500 to-sky-600"
+                className="w-full bg-gradient-to-r from-indigo-500 to-violet-600"
                 disabled={loading || !passwordOk}
               >
                 {loading ? (
@@ -712,7 +655,7 @@ export default function RegisterPage() {
               Already have an account?{" "}
               <Link
                 href="/login"
-                className="font-medium text-sky-600 hover:underline"
+                className="font-medium text-indigo-600 hover:underline"
               >
                 Sign in
               </Link>

@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useRouter, usePathname } from "next/navigation";
+import { usePathname } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -22,7 +22,6 @@ interface NavbarProps {
 }
 
 export function Navbar({ role, links }: NavbarProps) {
-  const router = useRouter();
   const pathname = usePathname();
   const [profile, setProfile] = useState<{ full_name: string; email: string } | null>(null);
   const [unreadCount, setUnreadCount] = useState(0);

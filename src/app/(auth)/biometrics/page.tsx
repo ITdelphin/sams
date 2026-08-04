@@ -13,7 +13,6 @@ import {
     Loader2,
     AlertCircle,
     ScanLine,
-    RefreshCw,
     Shield,
     ArrowRight,
     X,
@@ -89,7 +88,6 @@ export default function BiometricsPage() {
         if (faceModelsLoaded.current) return faceapiRef.current;
         setFaceStatus("loading");
         try {
-            // eslint-disable-next-line @typescript-eslint/no-require-imports
             const faceapi = await import("face-api.js");
             await Promise.all([
                 // eslint-disable-next-line @typescript-eslint/no-explicit-any

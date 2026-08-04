@@ -135,7 +135,10 @@ function buildWeekData(records: Record[]): WeekData[] {
     if (idx < 0 || idx >= 7) return;
     const status = (r.status as string).toLowerCase();
     if (status === "present" || status === "absent" || status === "late" || status === "excused") {
-      (days[idx] as any)[status] += 1;
+      if (status === "present") days[idx].present += 1;
+      else if (status === "absent") days[idx].absent += 1;
+      else if (status === "late") days[idx].late += 1;
+      else if (status === "excused") days[idx].excused += 1;
     }
   });
   return days;

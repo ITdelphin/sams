@@ -193,7 +193,7 @@ export default function AdminClassesPage() {
     }
 
     setSaving(true);
-    const { error } = await (supabase.from("classes") as any).insert({
+    const { error } = await supabase.from("classes").insert({
       name: addForm.name.trim(),
       faculty_id: addForm.faculty_id || null,
       department_id: addForm.department_id || null,
@@ -227,7 +227,7 @@ export default function AdminClassesPage() {
     }
 
     setSaving(true);
-    const { error } = await (supabase.from("classes") as any)
+    const { error } = await supabase.from("classes")
       .update({
         name: editForm.name.trim(),
         faculty_id: editForm.faculty_id || null,

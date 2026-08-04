@@ -139,8 +139,49 @@ const fallbackNotifs = [
   { title: "System update available", message: "Version 2.4 is ready to install.", type: "system", time: "1d ago" },
 ];
 
-function buildWeekData(records: any[]): any[] {
-  const days: any[] = [];
+interface WeekData {
+  key: string;
+  name: string;
+  present: number;
+  absent: number;
+  late: number;
+  excused: number;
+}
+
+interface StatusDataItem {
+  name: string;
+  value: number;
+  color: string;
+}
+
+interface TopCourse {
+  name: string;
+  code: string;
+  count: number;
+}
+
+interface RecentUser {
+  full_name: string | null;
+  email: string;
+  role: string;
+  account_status: string;
+  created_at: string;
+}
+
+interface ActivityItem {
+  action: string;
+  time: string;
+}
+
+interface NotificationItem {
+  title: string;
+  message: string;
+  type: string;
+  time: string;
+}
+
+function buildWeekData(records: { marked_at?: string; status?: string }[]): WeekData[] {
+  const days: WeekData[] = [];
   const today = new Date();
   today.setHours(0, 0, 0, 0);
   for (let i = 6; i >= 0; i--) {
@@ -162,10 +203,11 @@ function buildWeekData(records: any[]): any[] {
     const diff = Math.round((today.getTime() - d.getTime()) / 86400000);
     const idx = 6 - diff;
     if (idx < 0 || idx >= 7) return;
-    const status = (r.status as string).toLowerCase();
-    if (status === "present" || status === "absent" || status === "late" || status === "excused") {
-      days[idx][status] += 1;
-    }
+    const status = r.status.toLowerCase();
+    if (status === "present") days[idx].present += 1;
+    else if (status === "absent") days[idx].absent += 1;
+    else if (status === "late") days[idx].late += 1;
+    else if (status === "excused") days[idx].excused += 1;
   });
   return days;
 }
@@ -179,12 +221,12 @@ export default function AdminDashboardPage() {
     attendanceRate: 0,
     activeSessions: 0,
   });
-  const [statusData, setStatusData] = useState<any[]>([]);
-  const [topCourses, setTopCourses] = useState<any[]>([]);
-  const [recentUsers, setRecentUsers] = useState<any[]>([]);
-  const [activity, setActivity] = useState<any[]>([]);
-  const [notifications, setNotifications] = useState<any[]>([]);
-  const [weekData, setWeekData] = useState<any[]>([]);
+  const [statusData, setStatusData] = useState<StatusDataItem[]>([]);
+  const [topCourses, setTopCourses] = useState<TopCourse[]>([]);
+  const [recentUsers, setRecentUsers] = useState<RecentUser[]>([]);
+  const [activity, setActivity] = useState<ActivityItem[]>([]);
+  const [notifications, setNotifications] = useState<NotificationItem[]>([]);
+  const [weekData, setWeekData] = useState<WeekData[]>([]);
   const [checkedIn, setCheckedIn] = useState(0);
   const [methodBreakdown, setMethodBreakdown] = useState<Record<string, number>>({});
   const [hasRealData, setHasRealData] = useState(false);
@@ -222,11 +264,11 @@ export default function AdminDashboardPage() {
         supabase.from("notifications").select("*").order("created_at", { ascending: false }).limit(4),
       ]);
 
-      const records = (recordsRes.data as any[]) || [];
+      const records = (recordsRes.data as { status?: string; marked_at?: string; session?: { is_active?: boolean } }[]) || [];
       const present = records.filter((r) => r.status === "present").length;
       const total = records.length;
 
-      const activeSessionRows = (activeSessions.data as any[]) || [];
+      const activeSessionRows = (activeSessions.data as { method: string }[]) || [];
       const methodCounts: Record<string, number> = {};
       activeSessionRows.forEach((s) => {
         methodCounts[s.method] = (methodCounts[s.method] || 0) + 1;
@@ -244,7 +286,7 @@ export default function AdminDashboardPage() {
       setCheckedIn(records.filter((r) => r.session?.is_active).length);
       setMethodBreakdown(methodCounts);
 
-      const statusRows = (statusRes.data as any[]) || [];
+      const statusRows = (statusRes.data as { account_status: string }[]) || [];
       const counts: Record<string, number> = {};
       statusRows.forEach((s) => {
         counts[s.account_status] = (counts[s.account_status] || 0) + 1;
@@ -261,7 +303,7 @@ export default function AdminDashboardPage() {
         .map(([k, v]) => ({ name: statusMap[k].label, value: v, color: statusMap[k].color }));
       setStatusData(statusDataArr.length > 0 ? statusDataArr : fallbackStatus);
 
-      const enrollRows = (enrollRes.data as any[]) || [];
+      const enrollRows = (enrollRes.data as { course?: { name: string; code: string } | null }[]) || [];
       const courseCounts: Record<string, { name: string; code: string; count: number }> = {};
       enrollRows.forEach((e) => {
         const c = e.course;
@@ -276,11 +318,11 @@ export default function AdminDashboardPage() {
         .map((c) => ({ name: c.name, code: c.code, count: c.count }));
       setTopCourses(top.length > 0 ? top : fallbackCourses);
 
-      setRecentUsers(recent.data || []);
-      const activity = (activityRes.data as any[]) ?? [];
-      const notifs = (notifsRes.data as any[]) ?? [];
-      setActivity(activity.length ? activity.map((a: any) => ({ action: a.action, time: formatDate(a.created_at) })) : fallbackActivity);
-      setNotifications(notifs.length ? notifs.map((n: any) => ({ title: n.title, message: n.message, type: n.type, time: formatDate(n.created_at) })) : fallbackNotifs);
+      setRecentUsers((recent.data as RecentUser[]) || []);
+      const activity = (activityRes.data as { action: string; created_at: string }[]) ?? [];
+      const notifs = (notifsRes.data as { title: string; message: string; type: string; created_at: string }[]) ?? [];
+      setActivity(activity.length ? activity.map((a) => ({ action: a.action, time: formatDate(a.created_at) })) : fallbackActivity);
+      setNotifications(notifs.length ? notifs.map((n) => ({ title: n.title, message: n.message, type: n.type, time: formatDate(n.created_at) })) : fallbackNotifs);
 
       const realWeek = buildWeekData(records);
       const hasWeek = realWeek.some((d) => d.present + d.absent + d.late + d.excused > 0);

@@ -25,7 +25,6 @@ import {
   ResponsiveContainer,
 } from "recharts";
 import {
-  GraduationCap,
   BookOpen,
   CalendarDays,
   CheckCircle2,
