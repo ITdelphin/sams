@@ -54,7 +54,7 @@ export function Navbar({ role, links }: NavbarProps) {
   async function handleLogout() {
     const supabase = createClient();
     await supabase.auth.signOut();
-    router.push("/login");
+    window.location.href = "/login";
   }
 
   const initials =

@@ -77,7 +77,7 @@ export function Sidebar({ links, role, groups }: SidebarProps) {
   async function handleLogout() {
     const supabase = createClient();
     await supabase.auth.signOut();
-    router.push("/login");
+    window.location.href = "/login";
   }
 
   function renderLink(link: SidebarLink) {
