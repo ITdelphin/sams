@@ -16,8 +16,8 @@ const features = [
     ),
     title: "QR Code Scanning",
     desc: "Instant, contactless attendance marking with secure rotating QR codes that expire automatically.",
-    grad: "from-indigo-400 to-violet-600",
-    glow: "shadow-indigo-500/30",
+    grad: "from-[#2563EB] to-[#38BDF8]",
+    glow: "shadow-[#2563EB]/30",
   },
   {
     icon: (
@@ -27,8 +27,8 @@ const features = [
     ),
     title: "Face Recognition",
     desc: "AI-powered biometric face scanning ensures only verified students can mark attendance.",
-    grad: "from-violet-400 to-violet-600",
-    glow: "shadow-violet-500/30",
+    grad: "from-[#38BDF8] to-[#2563EB]",
+    glow: "shadow-[#38BDF8]/30",
   },
   {
     icon: (
@@ -60,8 +60,8 @@ const features = [
     ),
     title: "Real-time Analytics",
     desc: "Live dashboards with attendance trends, reports, and AI-driven insights for institutions.",
-    grad: "from-indigo-400 to-indigo-600",
-    glow: "shadow-indigo-500/30",
+    grad: "from-[#2563EB] to-[#2563EB]",
+    glow: "shadow-[#2563EB]/30",
   },
   {
     icon: (
@@ -96,14 +96,14 @@ const testimonials = [
     role: "Head of Computer Science, UR",
     quote: "SAMS eliminated proxy attendance entirely. Our data is now 100% reliable and saves us hours each week.",
     initials: "JK",
-    grad: "from-indigo-400 to-violet-600",
+    grad: "from-[#2563EB] to-[#38BDF8]",
   },
   {
     name: "Alice Uwimana",
     role: "Student, Software Engineering",
     quote: "Marking attendance with a QR scan takes under 3 seconds. So much better than paper registers!",
     initials: "AU",
-    grad: "from-violet-400 to-violet-600",
+    grad: "from-[#38BDF8] to-[#2563EB]",
   },
   {
     name: "Dr. Grace Nkurunziza",
@@ -156,10 +156,10 @@ export default function HomePage() {
 
   if (checking) {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-slate-950">
+      <div className="flex min-h-screen items-center justify-center bg-[#081224]">
         <div className="flex flex-col items-center gap-4">
           <div className="relative h-12 w-12">
-            <div className="absolute inset-0 animate-spin rounded-full border-4 border-indigo-500/20 border-t-indigo-500" />
+            <div className="absolute inset-0 animate-spin rounded-full border-4 border-[#2563EB]/20 border-t-[#2563EB]" />
           </div>
           <p className="text-sm text-slate-400">Loading SAMS...</p>
         </div>
@@ -168,12 +168,12 @@ export default function HomePage() {
   }
 
   return (
-    <div className="min-h-screen bg-slate-950 text-white">
+    <div className="min-h-screen bg-[#081224] text-white">
       {/* ─── Navbar ─── */}
-      <header className="fixed inset-x-0 top-0 z-50 border-b border-white/5 bg-slate-950/80 backdrop-blur-xl">
+      <header className="fixed inset-x-0 top-0 z-50 border-b border-white/5 bg-[#081224]/80 backdrop-blur-xl">
         <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8">
           <div className="flex items-center gap-2.5">
-            <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-br from-indigo-400 to-violet-600 shadow-lg shadow-indigo-500/30">
+            <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-br from-[#2563EB] to-[#38BDF8] shadow-lg shadow-[#2563EB]/30">
               <GraduationCap className="size-5 text-white" />
             </div>
             <span className="text-lg font-bold tracking-tight text-white">SAMS</span>
@@ -201,7 +201,7 @@ export default function HomePage() {
             </Link>
             <Link
               href="/register"
-              className="inline-flex items-center gap-1.5 rounded-xl bg-indigo-500 px-5 py-2 text-sm font-semibold text-white shadow-lg shadow-indigo-500/30 transition-all hover:bg-indigo-500 hover:shadow-indigo-500/40"
+              className="inline-flex items-center gap-1.5 rounded-xl bg-[#2563EB] px-5 py-2 text-sm font-semibold text-white shadow-lg shadow-[#2563EB]/30 transition-all hover:bg-[#2563EB] hover:shadow-[#2563EB]/40"
             >
               Get Started
               <svg viewBox="0 0 16 16" fill="currentColor" className="size-3.5">
@@ -229,7 +229,7 @@ export default function HomePage() {
 
         {/* Mobile menu */}
         {menuOpen && (
-          <div className="md:hidden border-t border-white/5 bg-slate-950/95 px-4 py-4 space-y-2">
+          <div className="md:hidden border-t border-white/5 bg-[#081224]/95 px-4 py-4 space-y-2">
             {["Features", "How It Works", "Testimonials"].map((item) => (
               <a
                 key={item}
@@ -252,9 +252,9 @@ export default function HomePage() {
       {/* ─── Hero ─── */}
       <section className="relative overflow-hidden pt-32 pb-24 sm:pt-40 sm:pb-32">
         {/* Background glows */}
-        <div className="absolute -top-40 left-1/2 -translate-x-1/2 h-[600px] w-[600px] rounded-full bg-violet-600/10 blur-[120px] pointer-events-none" />
-        <div className="absolute top-20 -left-20 h-80 w-80 rounded-full bg-violet-600/10 blur-[100px] pointer-events-none" />
-        <div className="absolute bottom-0 -right-20 h-80 w-80 rounded-full bg-indigo-600/10 blur-[100px] pointer-events-none" />
+        <div className="absolute -top-40 left-1/2 -translate-x-1/2 h-[600px] w-[600px] rounded-full bg-[#2563EB]/10 blur-[120px] pointer-events-none" />
+        <div className="absolute top-20 -left-20 h-80 w-80 rounded-full bg-[#38BDF8]/10 blur-[100px] pointer-events-none" />
+        <div className="absolute bottom-0 -right-20 h-80 w-80 rounded-full bg-[#2563EB]/10 blur-[100px] pointer-events-none" />
 
         {/* Grid pattern */}
         <div
@@ -267,40 +267,40 @@ export default function HomePage() {
 
         <div className="relative mx-auto max-w-5xl px-4 sm:px-6 lg:px-8 text-center">
           {/* Pill label */}
-          <div className="mb-8 inline-flex items-center gap-2 rounded-full border border-indigo-500/20 bg-indigo-500/5 px-5 py-1.5">
+          <div className="mb-8 inline-flex items-center gap-2 rounded-full border border-[#2563EB]/20 bg-[#2563EB]/5 px-5 py-1.5">
             <span className="relative flex h-2 w-2">
-              <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-indigo-400 opacity-75" />
-              <span className="relative inline-flex h-2 w-2 rounded-full bg-indigo-500" />
+              <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-[#38BDF8] opacity-75" />
+              <span className="relative inline-flex h-2 w-2 rounded-full bg-[#2563EB]" />
             </span>
-            <span className="text-sm font-medium text-indigo-400">Smart Attendance Management System</span>
+            <span className="text-sm font-medium text-[#38BDF8]">Smart Attendance Management System</span>
           </div>
 
           <h1 className="text-5xl font-extrabold tracking-tight text-white sm:text-6xl lg:text-7xl">
             Secure Digital{" "}
             <span className="relative">
-              <span className="relative z-10 bg-gradient-to-r from-indigo-400 via-violet-400 to-purple-400 bg-clip-text text-transparent">
+              <span className="relative z-10 bg-gradient-to-r from-[#38BDF8] via-[#38BDF8] to-[#2563EB] bg-clip-text text-transparent">
                 Attendance
               </span>
             </span>
             <br />
             for{" "}
-            <span className="bg-gradient-to-r from-violet-400 to-violet-300 bg-clip-text text-transparent">
+            <span className="bg-gradient-to-r from-[#38BDF8] to-[#38BDF8]/80 bg-clip-text text-transparent">
               Universities
             </span>
           </h1>
 
           <p className="mx-auto mt-8 max-w-2xl text-lg text-slate-400 sm:text-xl leading-relaxed">
             Replace paper attendance with secure digital tracking using{" "}
-            <span className="text-indigo-400 font-medium">QR Codes</span>,{" "}
-            <span className="text-violet-400 font-medium">Face Recognition</span>,{" "}
+            <span className="text-[#38BDF8] font-medium">QR Codes</span>,{" "}
+            <span className="text-[#38BDF8] font-medium">Face Recognition</span>,{" "}
             <span className="text-orange-400 font-medium">Fingerprints</span>, and{" "}
-            <span className="text-purple-400 font-medium">Student ID Cards</span>.
+            <span className="text-[#38BDF8] font-medium">Student ID Cards</span>.
           </p>
 
           <div className="mt-10 flex flex-col items-center gap-4 sm:flex-row sm:justify-center">
             <Link
               href="/register"
-              className="group inline-flex items-center gap-2 rounded-2xl bg-gradient-to-r from-indigo-600 to-violet-600 px-8 py-4 text-base font-bold text-white shadow-2xl shadow-indigo-500/30 transition-all hover:shadow-indigo-500/50 hover:scale-105 active:scale-100"
+              className="group inline-flex items-center gap-2 rounded-2xl bg-gradient-to-r from-[#2563EB] to-[#38BDF8] px-8 py-4 text-base font-bold text-white shadow-2xl shadow-[#2563EB]/30 transition-all hover:shadow-[#2563EB]/50 hover:scale-105 active:scale-100"
             >
               Register Your Institution
               <svg viewBox="0 0 16 16" fill="currentColor" className="size-4 transition-transform group-hover:translate-x-0.5">
@@ -329,10 +329,10 @@ export default function HomePage() {
 
       {/* ─── Features ─── */}
       <section id="features" className="relative py-24 sm:py-32">
-        <div className="absolute inset-0 bg-gradient-to-b from-transparent via-violet-950/10 to-transparent pointer-events-none" />
+        <div className="absolute inset-0 bg-gradient-to-b from-transparent via-[#2563EB]/10 to-transparent pointer-events-none" />
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
           <div className="text-center">
-            <p className="text-sm font-semibold uppercase tracking-widest text-indigo-400">Features</p>
+            <p className="text-sm font-semibold uppercase tracking-widest text-[#38BDF8]">Features</p>
             <h2 className="mt-3 text-4xl font-bold text-white sm:text-5xl">Everything You Need</h2>
             <p className="mt-4 text-slate-400 max-w-xl mx-auto">
               A complete suite of tools to digitize, secure, and analyze attendance across your entire institution.
@@ -363,7 +363,7 @@ export default function HomePage() {
       <section id="how-it-works" className="py-24 sm:py-32">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
           <div className="text-center">
-            <p className="text-sm font-semibold uppercase tracking-widest text-violet-400">Process</p>
+            <p className="text-sm font-semibold uppercase tracking-widest text-[#38BDF8]">Process</p>
             <h2 className="mt-3 text-4xl font-bold text-white sm:text-5xl">How It Works</h2>
             <p className="mt-4 text-slate-400 max-w-xl mx-auto">
               From session start to report generation — everything happens in minutes, not days.
@@ -392,7 +392,7 @@ export default function HomePage() {
       <section id="testimonials" className="py-24 sm:py-32">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
           <div className="text-center">
-            <p className="text-sm font-semibold uppercase tracking-widest text-purple-400">Testimonials</p>
+            <p className="text-sm font-semibold uppercase tracking-widest text-[#38BDF8]">Testimonials</p>
             <h2 className="mt-3 text-4xl font-bold text-white sm:text-5xl">Trusted by Educators</h2>
           </div>
 
@@ -428,20 +428,20 @@ export default function HomePage() {
       {/* ─── CTA ─── */}
       <section className="py-24 sm:py-32">
         <div className="mx-auto max-w-4xl px-4 sm:px-6 lg:px-8">
-          <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-indigo-600 via-violet-600 to-purple-600 p-10 sm:p-16 text-center shadow-2xl shadow-indigo-500/20">
+          <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-[#2563EB] via-[#38BDF8] to-[#2563EB] p-10 sm:p-16 text-center shadow-2xl shadow-[#2563EB]/20">
             <div className="absolute -top-16 -right-16 h-64 w-64 rounded-full bg-white/10 blur-3xl" />
-            <div className="absolute -bottom-8 -left-8 h-40 w-40 rounded-full bg-purple-400/20 blur-2xl" />
+            <div className="absolute -bottom-8 -left-8 h-40 w-40 rounded-full bg-[#38BDF8]/20 blur-2xl" />
             <div className="relative">
               <h2 className="text-4xl font-extrabold text-white sm:text-5xl">
                 Ready to Go Paperless?
               </h2>
-              <p className="mt-4 text-lg text-violet-100">
+              <p className="mt-4 text-lg text-[#38BDF8]/80">
                 Join 15+ universities that have already transformed their attendance systems with SAMS.
               </p>
               <div className="mt-8 flex flex-col items-center gap-4 sm:flex-row sm:justify-center">
                 <Link
                   href="/register"
-                  className="rounded-2xl bg-white px-8 py-4 text-base font-bold text-indigo-700 shadow-lg transition-all hover:bg-indigo-50 hover:scale-105"
+                  className="rounded-2xl bg-white px-8 py-4 text-base font-bold text-[#2563EB] shadow-lg transition-all hover:bg-[#2563EB]/10 hover:scale-105"
                 >
                   Start Free Today
                 </Link>
@@ -462,7 +462,7 @@ export default function HomePage() {
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
           <div className="flex flex-col items-center justify-between gap-6 sm:flex-row">
             <div className="flex items-center gap-2.5">
-              <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-to-br from-indigo-400 to-violet-600 shadow-lg shadow-indigo-500/30">
+              <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-to-br from-[#2563EB] to-[#38BDF8] shadow-lg shadow-[#2563EB]/30">
                 <GraduationCap className="size-4 text-white" />
               </div>
               <span className="font-bold text-white">SAMS</span>

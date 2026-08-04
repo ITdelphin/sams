@@ -4,7 +4,6 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/client";
-import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import {
   Mail,
@@ -12,31 +11,9 @@ import {
   Eye,
   EyeOff,
   GraduationCap,
-  QrCode,
-  BarChart3,
-  ShieldCheck,
-  Building2,
-  Globe,
+  ArrowRight,
   Loader2,
 } from "lucide-react";
-
-const features = [
-  {
-    icon: QrCode,
-    title: "Multiple Attendance Methods",
-    points: ["QR Code", "Face Recognition", "Fingerprint", "Manual Attendance"],
-  },
-  {
-    icon: BarChart3,
-    title: "Real-time Reports & Analytics",
-    points: ["Monitor attendance instantly", "Generate reports automatically"],
-  },
-  {
-    icon: ShieldCheck,
-    title: "Secure & Reliable",
-    points: ["Enterprise-grade authentication", "Encrypted data", "Role-based access control"],
-  },
-];
 
 function GoogleIcon() {
   return (
@@ -203,229 +180,170 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="flex min-h-screen bg-[#F8FAFC]">
-      {/* Left branding panel */}
-      <div className="relative hidden w-[40%] overflow-hidden bg-gradient-to-br from-indigo-900 via-violet-800 to-indigo-700 lg:block">
-        <div className="absolute -left-20 top-1/4 h-72 w-72 rounded-full bg-violet-500/30 blur-3xl animate-[blob-move_12s_ease-in-out_infinite]" />
-        <div className="absolute right-[-60px] top-16 h-56 w-56 rounded-full bg-purple-400/20 blur-3xl animate-[float-slow_7s_ease-in-out_infinite]" />
-        <div className="absolute bottom-10 left-1/3 h-40 w-40 rounded-full bg-white/10 blur-2xl" />
+    <div className="relative flex min-h-screen items-center justify-center bg-[#081224] px-4 py-12 font-['Inter',sans-serif]">
+      {/* Background glows */}
+      <div className="pointer-events-none absolute inset-0 overflow-hidden">
+        <div className="absolute -left-40 top-1/4 h-[500px] w-[500px] rounded-full bg-[#2563EB]/10 blur-[120px]" />
+        <div className="absolute -right-40 bottom-1/4 h-[400px] w-[400px] rounded-full bg-[#38BDF8]/8 blur-[100px]" />
+        <div className="absolute left-1/2 top-0 h-[300px] w-[300px] -translate-x-1/2 rounded-full bg-[#2563EB]/5 blur-[80px]" />
+      </div>
 
-        <div
-          className="absolute inset-0 opacity-[0.07]"
-          style={{
-            backgroundImage:
-              "radial-gradient(rgba(255,255,255,0.9) 1px, transparent 1px)",
-            backgroundSize: "22px 22px",
-          }}
-        />
+      {/* Grid pattern */}
+      <div
+        className="pointer-events-none absolute inset-0 opacity-[0.03]"
+        style={{
+          backgroundImage:
+            "linear-gradient(rgba(255,255,255,0.8) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.8) 1px, transparent 1px)",
+          backgroundSize: "60px 60px",
+        }}
+      />
 
-        <div className="relative z-10 flex h-full flex-col p-10 xl:p-14">
-          <div className="flex items-center gap-3">
-            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-white/10 backdrop-blur-md">
-              <GraduationCap className="size-5 text-white" />
+      {/* Login card */}
+      <div className="relative z-10 w-full max-w-md animate-[fadeIn_0.6s_ease_both]">
+        <div className="rounded-3xl border border-white/10 bg-white/[0.04] p-8 shadow-2xl shadow-black/20 backdrop-blur-xl sm:p-10">
+          {/* Logo */}
+          <div className="mb-8 flex flex-col items-center">
+            <div className="mb-4 flex h-14 w-14 items-center justify-center rounded-2xl bg-gradient-to-br from-[#2563EB] to-[#38BDF8] shadow-lg shadow-[#2563EB]/30">
+              <GraduationCap className="size-7 text-white" />
             </div>
-            <div>
-              <p className="text-base font-bold text-white">SAMS</p>
-              <p className="text-[11px] text-violet-100/80">Smart Attendance Management System</p>
-            </div>
-          </div>
-
-          <div className="mt-16 xl:mt-24 space-y-6 [animation:fade-up_0.6s_ease_both]">
-            <h1 className="text-4xl xl:text-5xl font-bold leading-tight text-white">
-              Smart Attendance for{" "}
-              <span className="bg-gradient-to-r from-violet-300 to-indigo-200 bg-clip-text text-transparent">
-                Smarter Education
-              </span>
-            </h1>
-            <p className="max-w-md text-sm leading-relaxed text-violet-50/80">
-              A unified platform that helps students, lecturers, and administrators
-              manage attendance securely using QR codes, Face Recognition, Fingerprint
-              authentication, and real-time analytics.
+            <h1 className="text-2xl font-bold text-white">Sign In</h1>
+            <p className="mt-1 text-sm text-[#CBD5E1]">
+              Access your attendance dashboard
             </p>
           </div>
 
-          <div className="mt-12 space-y-4">
-            {features.map((f, i) => {
-              const Icon = f.icon;
-              return (
-                <div
-                  key={f.title}
-                  className="flex items-start gap-4 rounded-2xl border border-white/10 bg-white/10 p-4 backdrop-blur-md"
-                  style={{ animation: `fade-up 0.6s ease ${0.15 + i * 0.12}s both` }}
+          {/* Form */}
+          <form onSubmit={handleLogin} className="space-y-5">
+            {error && (
+              <div className="rounded-xl border border-red-500/20 bg-red-500/10 p-3 text-sm text-red-400">
+                {error}
+              </div>
+            )}
+
+            {/* Email */}
+            <div className="space-y-2">
+              <label htmlFor="email" className="text-sm font-medium text-[#CBD5E1]">
+                University Email
+              </label>
+              <div className="relative">
+                <Mail className="absolute left-3.5 top-1/2 size-4 -translate-y-1/2 text-[#CBD5E1]/50" />
+                <input
+                  id="email"
+                  type="email"
+                  placeholder="you@university.edu"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  required
+                  className="h-12 w-full rounded-xl border border-white/10 bg-white/[0.05] pl-10 pr-3 text-sm text-white placeholder:text-[#CBD5E1]/30 outline-none transition focus:border-[#2563EB] focus:ring-2 focus:ring-[#2563EB]/20"
+                />
+              </div>
+            </div>
+
+            {/* Password */}
+            <div className="space-y-2">
+              <label htmlFor="password" className="text-sm font-medium text-[#CBD5E1]">
+                Password
+              </label>
+              <div className="relative">
+                <Lock className="absolute left-3.5 top-1/2 size-4 -translate-y-1/2 text-[#CBD5E1]/50" />
+                <input
+                  id="password"
+                  type={showPassword ? "text" : "password"}
+                  placeholder="Enter your password"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  required
+                  className="h-12 w-full rounded-xl border border-white/10 bg-white/[0.05] pl-10 pr-10 text-sm text-white placeholder:text-[#CBD5E1]/30 outline-none transition focus:border-[#2563EB] focus:ring-2 focus:ring-[#2563EB]/20"
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-[#CBD5E1]/40 transition hover:text-[#CBD5E1]"
+                  tabIndex={-1}
                 >
-                  <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-indigo-500/90 shadow-lg shadow-indigo-500/30">
-                    <Icon className="size-5 text-white" />
-                  </div>
-                  <div>
-                    <p className="text-sm font-semibold text-white">{f.title}</p>
-                    <p className="mt-1 text-xs leading-relaxed text-violet-50/75">
-                      {f.points.join(" · ")}
-                    </p>
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-
-          <div className="mt-auto pt-10">
-            <div className="flex items-center gap-4 rounded-2xl border border-white/15 bg-white/10 p-5 backdrop-blur-md">
-              <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-white/10">
-                <Building2 className="size-5 text-violet-300" />
-              </div>
-              <div>
-                <p className="text-sm font-semibold text-white">Trusted by Universities</p>
-                <p className="text-xs text-violet-50/75">
-                  Built for institutions that value transparency, security, and academic excellence.
-                </p>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* Right login area */}
-      <div className="flex flex-1 flex-col">
-        <div className="flex items-center justify-end gap-2 p-5">
-          <Button variant="ghost" className="gap-2 text-sm text-slate-500">
-            <Globe className="size-4" />
-            English
-          </Button>
-        </div>
-
-        <div className="flex flex-1 items-center justify-center px-6 pb-8">
-          <div className="w-full max-w-md [animation:fade-up_0.5s_ease_both]">
-            <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-gradient-to-br from-indigo-500 to-violet-600 shadow-lg shadow-indigo-500/30">
-              <GraduationCap className="size-7 text-white" />
-            </div>
-
-            <div className="mt-5 text-center">
-              <h1 className="text-2xl font-bold text-indigo-950">Welcome Back!</h1>
-              <p className="mt-1 text-sm text-slate-500">Sign in to your SAMS account</p>
-            </div>
-
-            <div className="mt-8 rounded-[20px] border border-slate-200 bg-white p-8 shadow-xl shadow-slate-900/5">
-              <form onSubmit={handleLogin} className="space-y-5">
-                {error && (
-                  <div className="rounded-xl border border-red-100 bg-red-50 p-3 text-sm text-red-600">
-                    {error}
-                  </div>
-                )}
-
-                <div className="space-y-2">
-                  <label htmlFor="email" className="text-sm font-medium text-[#334155]">
-                    Email
-                  </label>
-                  <div className="relative">
-                    <Mail className="absolute left-3.5 top-1/2 size-4 -translate-y-1/2 text-slate-400" />
-                    <input
-                      id="email"
-                      type="email"
-                      placeholder="Enter your email"
-                      value={email}
-                      onChange={(e) => setEmail(e.target.value)}
-                      required
-                      className="h-11 w-full rounded-xl border border-slate-200 bg-white pl-10 pr-3 text-sm text-[#334155] placeholder:text-slate-400 outline-none transition focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20"
-                    />
-                  </div>
-                </div>
-
-                <div className="space-y-2">
-                  <label htmlFor="password" className="text-sm font-medium text-[#334155]">
-                    Password
-                  </label>
-                  <div className="relative">
-                    <Lock className="absolute left-3.5 top-1/2 size-4 -translate-y-1/2 text-slate-400" />
-                    <input
-                      id="password"
-                      type={showPassword ? "text" : "password"}
-                      placeholder="Enter your password"
-                      value={password}
-                      onChange={(e) => setPassword(e.target.value)}
-                      required
-                      className="h-11 w-full rounded-xl border border-slate-200 bg-white pl-10 pr-10 text-sm text-[#334155] placeholder:text-slate-400 outline-none transition focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20"
-                    />
-                    <button
-                      type="button"
-                      onClick={() => setShowPassword(!showPassword)}
-                      className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 transition hover:text-slate-600"
-                      tabIndex={-1}
-                    >
-                      {showPassword ? <EyeOff className="size-4" /> : <Eye className="size-4" />}
-                    </button>
-                  </div>
-                </div>
-
-                <div className="flex items-center justify-between">
-                  <label className="flex cursor-pointer items-center gap-2 text-sm text-slate-600">
-                    <input
-                      type="checkbox"
-                      checked={rememberMe}
-                      onChange={(e) => setRememberMe(e.target.checked)}
-                      className="size-4 rounded border-slate-300 text-indigo-600 accent-indigo-600"
-                    />
-                    Remember Me
-                  </label>
-                  <Link
-                    href="/forgot-password"
-                    className="text-sm font-medium text-indigo-600 transition hover:text-indigo-700 hover:underline"
-                  >
-                    Forgot Password?
-                  </Link>
-                </div>
-
-                <Button
-                  type="submit"
-                  disabled={loading}
-                  className="h-11 w-full rounded-xl bg-gradient-to-r from-indigo-500 to-violet-600 text-white font-semibold shadow-lg shadow-indigo-500/30 transition hover:from-indigo-600 hover:to-violet-700 hover:shadow-xl hover:shadow-indigo-500/40 hover:-translate-y-0.5 active:translate-y-0"
-                >
-                  {loading ? (
-                    <span className="flex items-center gap-2">
-                      <Loader2 className="size-4 animate-spin" />
-                      Signing in...
-                    </span>
-                  ) : (
-                    "Sign In"
-                  )}
-                </Button>
-              </form>
-
-              <div className="my-6 flex items-center gap-3">
-                <div className="h-px flex-1 bg-slate-200" />
-                <span className="text-xs font-medium uppercase tracking-wide text-slate-400">
-                  Or continue with
-                </span>
-                <div className="h-px flex-1 bg-slate-200" />
-              </div>
-
-              <div className="grid grid-cols-3 gap-3">
-                {[
-                  { name: "Google", icon: <GoogleIcon /> },
-                  { name: "GitHub", icon: <GitHubIcon /> },
-                  { name: "Microsoft", icon: <MicrosoftIcon /> },
-                ].map((provider) => (
-                  <button
-                    key={provider.name}
-                    type="button"
-                    onClick={() => handleSocial(provider.name)}
-                    className="flex h-11 items-center justify-center gap-2 rounded-xl border border-slate-200 bg-white text-sm font-medium text-slate-600 transition hover:border-slate-300 hover:bg-slate-50"
-                  >
-                    {provider.icon}
-                  </button>
-                ))}
+                  {showPassword ? <EyeOff className="size-4" /> : <Eye className="size-4" />}
+                </button>
               </div>
             </div>
 
-            <div className="mt-6 text-center text-sm text-slate-500">
-              Don&apos;t have an account?{" "}
-              <Link href="/register" className="font-medium text-indigo-600 transition hover:text-indigo-700 hover:underline">
-                Register
+            {/* Remember me + Forgot */}
+            <div className="flex items-center justify-between">
+              <label className="flex cursor-pointer items-center gap-2 text-sm text-[#CBD5E1]/70">
+                <input
+                  type="checkbox"
+                  checked={rememberMe}
+                  onChange={(e) => setRememberMe(e.target.checked)}
+                  className="size-4 rounded border-white/20 bg-white/5 accent-[#2563EB]"
+                />
+                Remember Me
+              </label>
+              <Link
+                href="/forgot-password"
+                className="text-sm font-medium text-[#38BDF8] transition hover:text-[#38BDF8]/80 hover:underline"
+              >
+                Forgot Password?
               </Link>
             </div>
 
-            <footer className="mt-8 text-center text-xs text-slate-400">
-              © 2026 SAMS – Smart Attendance Management System. All rights reserved.
-            </footer>
+            {/* Submit */}
+            <button
+              type="submit"
+              disabled={loading}
+              className="group flex h-12 w-full items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-[#2563EB] to-[#38BDF8] text-sm font-semibold text-white shadow-lg shadow-[#2563EB]/30 transition-all hover:shadow-[#2563EB]/50 hover:shadow-xl hover:-translate-y-0.5 active:translate-y-0 disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              {loading ? (
+                <Loader2 className="size-4 animate-spin" />
+              ) : (
+                <>
+                  Sign In
+                  <ArrowRight className="size-4 transition-transform group-hover:translate-x-0.5" />
+                </>
+              )}
+            </button>
+          </form>
+
+          {/* Divider */}
+          <div className="my-6 flex items-center gap-3">
+            <div className="h-px flex-1 bg-white/10" />
+            <span className="text-xs font-medium uppercase tracking-wide text-[#CBD5E1]/30">
+              OR
+            </span>
+            <div className="h-px flex-1 bg-white/10" />
           </div>
+
+          {/* Social */}
+          <div className="grid grid-cols-3 gap-3">
+            {[
+              { name: "Google", icon: <GoogleIcon /> },
+              { name: "Microsoft", icon: <MicrosoftIcon /> },
+              { name: "GitHub", icon: <GitHubIcon /> },
+            ].map((provider) => (
+              <button
+                key={provider.name}
+                type="button"
+                onClick={() => handleSocial(provider.name)}
+                className="flex h-11 items-center justify-center gap-2 rounded-xl border border-white/10 bg-white/[0.03] text-sm font-medium text-[#CBD5E1] transition hover:border-white/20 hover:bg-white/[0.06]"
+              >
+                {provider.icon}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        {/* Register link */}
+        <div className="mt-6 text-center text-sm text-[#CBD5E1]/50">
+          Don&apos;t have an account?{" "}
+          <Link
+            href="/register"
+            className="font-medium text-[#38BDF8] transition hover:text-[#38BDF8]/80 hover:underline"
+          >
+            Register
+          </Link>
+        </div>
+
+        {/* Footer */}
+        <div className="mt-8 text-center text-xs text-[#CBD5E1]/20">
+          &copy; 2026 SAMS – Smart Attendance Management System
         </div>
       </div>
     </div>
