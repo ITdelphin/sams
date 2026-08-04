@@ -26,6 +26,7 @@ import {
   ListChecks,
   History,
   FileUp,
+  Fingerprint,
 } from "lucide-react";
 
 interface SidebarLink {
@@ -66,6 +67,7 @@ const iconMap: Record<string, LucideIcon> = {
   programs: Layers,
   timetable: CalendarClock,
   assignments: ListChecks,
+  biometrics: Fingerprint,
 };
 
 export function Sidebar({ links, role, groups }: SidebarProps) {

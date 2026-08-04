@@ -77,6 +77,7 @@ const studentLinks = [
   { label: "Dashboard", href: "/student", icon: "dashboard" },
   { label: "My Courses", href: "/student/courses", icon: "courses" },
   { label: "Attendance", href: "/student/attendance", icon: "attendance" },
+  { label: "Biometrics", href: "/biometrics", icon: "biometrics" },
   { label: "Notifications", href: "/student/notifications", icon: "notifications" },
   { label: "Profile", href: "/student/profile", icon: "profile" },
 ];
