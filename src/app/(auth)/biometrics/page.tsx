@@ -383,7 +383,7 @@ export default function BiometricsPage() {
         if (enrolledCount > 0) {
             toast.success(`Setup complete! ${enrolledCount} biometric method${enrolledCount !== 1 ? "s" : ""} registered.`);
         }
-        router.push("/login");
+        router.push("/student");
     }
 
     // ─── Status helpers ───────────────────────────────────────
@@ -670,7 +670,7 @@ export default function BiometricsPage() {
 
                 <p className="mt-6 text-center text-xs text-slate-600">
                     You can always enroll or update biometrics from{" "}
-                    <Link href="/login" className="text-sky-500 hover:underline">your profile</Link>{" "}
+                    <Link href="/student" className="text-sky-500 hover:underline">your dashboard</Link>{" "}
                     after logging in.
                 </p>
             </div>
